@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,13 +19,21 @@ import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
 
 const BENEFITS = [
-  { icon: "award",     text: "90-Day Transformation Challenge" },
-  { icon: "trending-up", text: "Full weekly & monthly progress charts" },
-  { icon: "zap",       text: "Unlimited AI-powered calorie estimation" },
-  { icon: "users",     text: "Direct coach access & feedback" },
-  { icon: "star",      text: "Personalised workout programs" },
-  { icon: "lock",      text: "Premium community & resources" },
+  { icon: "award",      text: "90-Day Transformation Challenge" },
+  { icon: "trending-up",text: "Full weekly & monthly progress charts" },
+  { icon: "zap",        text: "Unlimited AI-powered calorie estimation" },
+  { icon: "users",      text: "Direct coach access & feedback" },
+  { icon: "star",       text: "Personalised workout programs" },
+  { icon: "lock",       text: "Premium community & resources" },
 ];
+
+const BG_TOP    = "#2D0B4E";
+const BG_BOTTOM = "#0F172A";
+const CARD_BG   = "rgba(255,255,255,0.07)";
+const CARD_BORDER = "rgba(255,255,255,0.12)";
+const WHITE     = "#FFFFFF";
+const MUTED     = "rgba(255,255,255,0.60)";
+const ICON_TINT = "rgba(255,255,255,0.18)";
 
 export default function UpgradeScreen() {
   const colors = useColors();
@@ -42,10 +50,9 @@ export default function UpgradeScreen() {
     setChecking(true);
     await checkPremiumStatus();
     setChecking(false);
-    const fresh = user;
-    if (fresh?.isPremium) {
+    if (user?.isPremium) {
       Alert.alert("Premium Active!", "Your Premium access is now active. Welcome to your transformation journey.");
-    } else if (fresh?.paymentStatus === "pending") {
+    } else if (user?.paymentStatus === "pending") {
       Alert.alert("Pending", "Your payment is still pending review. You will be activated shortly.");
     } else {
       Alert.alert("Not found", "No approved payment found yet. Please try again later.");
@@ -53,57 +60,83 @@ export default function UpgradeScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.card }]}>
+    <View style={styles.root}>
+      <LinearGradient
+        colors={[BG_TOP, BG_BOTTOM]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.3, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Corner decorative elements — 8% opacity */}
+      <View style={styles.cornerTL} pointerEvents="none">
+        <View style={styles.cornerCircle}>
+          <Feather name="zap" size={52} color={WHITE} style={{ opacity: 0.08 }} />
+        </View>
+        <View style={[styles.cornerCircle, styles.cornerCircleOuter]} />
+      </View>
+      <View style={styles.cornerTR} pointerEvents="none">
+        <View style={styles.cornerCircle}>
+          <Feather name="trending-up" size={48} color={WHITE} style={{ opacity: 0.08 }} />
+        </View>
+        <View style={[styles.cornerCircle, styles.cornerCircleOuter]} />
+      </View>
+
       <ScrollView
         contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={22} color={colors.foreground} />
+            <Feather name="arrow-left" size={22} color={WHITE} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.foreground }]}>Upgrade to Premium</Text>
+          <Text style={styles.headerTitle}>CoreHer Premium</Text>
           <View style={{ width: 36 }} />
         </View>
 
-        <LinearGradient
-          colors={["#6A0DAD", "#9B5DE5"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroBanner}
-        >
-          <Feather name="star" size={36} color="#FFD700" />
-          <Text style={styles.heroTitle}>CoreHer Premium</Text>
-          <Text style={styles.heroSub}>Unlock your full transformation journey</Text>
-        </LinearGradient>
+        {/* Hero */}
+        <View style={styles.hero}>
+          <View style={styles.starBadge}>
+            <Feather name="star" size={16} color="#FFD700" />
+            <Text style={styles.starBadgeText}>PREMIUM</Text>
+          </View>
+          <Text style={styles.heroHeading}>Build your core.{"\n"}Transform your confidence.</Text>
+          <Text style={styles.heroSub}>
+            Everything you need to achieve a real, lasting transformation — in one place.
+          </Text>
+        </View>
 
-        <View style={[styles.benefitsCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionLabel, { color: colors.foreground }]}>What you get</Text>
+        {/* Benefits card */}
+        <View style={[styles.card, styles.benefitsCard]}>
+          <Text style={styles.cardHeading}>What you unlock</Text>
           {BENEFITS.map((b, i) => (
             <View key={i} style={styles.benefitRow}>
-              <View style={[styles.benefitIcon, { backgroundColor: "#6A0DAD18" }]}>
-                <Feather name={b.icon as any} size={16} color="#6A0DAD" />
+              <View style={styles.benefitIconWrap}>
+                <Feather name={b.icon as any} size={15} color="#C084FC" />
               </View>
-              <Text style={[styles.benefitText, { color: colors.foreground }]}>{b.text}</Text>
+              <Text style={styles.benefitText}>{b.text}</Text>
             </View>
           ))}
         </View>
 
-        <View style={[styles.payCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionLabel, { color: colors.foreground }]}>How to pay</Text>
-          <View style={[styles.merchantBox, { backgroundColor: "#FF6600" + "12", borderColor: "#FF6600" + "30" }]}>
+        {/* Pricing card */}
+        <View style={[styles.card, styles.priceCard]}>
+          <Text style={styles.cardHeading}>How to pay</Text>
+
+          <View style={styles.merchantBox}>
             <View style={styles.merchantRow}>
-              <View style={[styles.airtelDot, { backgroundColor: "#FF6600" }]}>
+              <View style={styles.airtelDot}>
                 <Text style={styles.airtelDotText}>A</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.airtelLabel, { color: colors.mutedForeground }]}>Airtel Money Uganda</Text>
-                <Text style={[styles.merchantCode, { color: "#FF6600" }]}>Merchant Code: 7071895</Text>
+                <Text style={styles.merchantLabel}>Airtel Money Uganda</Text>
+                <Text style={styles.merchantCode}>Merchant Code: 7071895</Text>
               </View>
             </View>
-            <View style={styles.priceDivider} />
+            <View style={styles.divider} />
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>One-time fee</Text>
+              <Text style={styles.priceLabel}>One-time fee</Text>
               <View style={styles.priceBadge}>
                 <Text style={styles.priceAmount}>UGX 75,000</Text>
               </View>
@@ -111,19 +144,17 @@ export default function UpgradeScreen() {
           </View>
 
           {isApproved ? (
-            <View style={[styles.approvedBadge, { backgroundColor: "#22C55E18" }]}>
-              <Feather name="check-circle" size={18} color="#22C55E" />
-              <Text style={[styles.approvedText, { color: "#22C55E" }]}>Premium is Active</Text>
+            <View style={styles.approvedBadge}>
+              <Feather name="check-circle" size={18} color="#4ADE80" />
+              <Text style={styles.approvedText}>Premium is Active</Text>
             </View>
           ) : hasPendingPayment ? (
             <View>
-              <View style={[styles.pendingBadge, { backgroundColor: "#F59E0B18" }]}>
-                <Feather name="clock" size={16} color="#F59E0B" />
-                <Text style={[styles.pendingText, { color: "#F59E0B" }]}>
-                  Payment pending review
-                </Text>
+              <View style={styles.pendingBadge}>
+                <Feather name="clock" size={16} color="#FCD34D" />
+                <Text style={styles.pendingText}>Payment pending review</Text>
               </View>
-              <Text style={[styles.pendingSub, { color: colors.mutedForeground }]}>
+              <Text style={styles.pendingSub}>
                 You will be notified once your coach approves your payment.
               </Text>
               <PillButton
@@ -133,31 +164,29 @@ export default function UpgradeScreen() {
               />
             </View>
           ) : (
+            /* CTA button */
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push("/payment");
               }}
-              style={styles.airtelBtn}
+              style={styles.ctaWrap}
             >
               <LinearGradient
-                colors={["#FF6600", "#FF8533"]}
+                colors={["#6A0DAD", "#FF7F7F"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.airtelBtnGradient}
+                style={styles.ctaGradient}
               >
-                <View style={[styles.airtelDotSm, { backgroundColor: "#fff3" }]}>
-                  <Text style={styles.airtelDotSmText}>A</Text>
-                </View>
-                <Text style={styles.airtelBtnLabel}>Pay with Airtel Money</Text>
+                <Text style={styles.ctaLabel}>Start Your 90-Day Transformation</Text>
                 <Feather name="arrow-right" size={18} color="#fff" />
               </LinearGradient>
             </TouchableOpacity>
           )}
         </View>
 
-        <Text style={[styles.note, { color: colors.mutedForeground }]}>
+        <Text style={styles.note}>
           Payments are manually verified by your coach. Access is activated within 24 hours of confirmation.
         </Text>
       </ScrollView>
@@ -167,111 +196,250 @@ export default function UpgradeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+
+  /* ── Decorative corners ── */
+  cornerTL: {
+    position: "absolute",
+    top: -40,
+    left: -40,
+    pointerEvents: "none",
+  },
+  cornerTR: {
+    position: "absolute",
+    top: -30,
+    right: -40,
+    pointerEvents: "none",
+    alignItems: "flex-end",
+  },
+  cornerCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(106,13,173,0.10)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cornerCircleOuter: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.04)",
+    top: -30,
+    left: -30,
+  },
+
+  /* ── Header ── */
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 28,
   },
   backBtn: { padding: 6 },
-  title: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  heroBanner: {
-    marginHorizontal: 20,
-    borderRadius: 24,
-    padding: 28,
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 20,
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
+    letterSpacing: 0.3,
   },
-  heroTitle: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#fff" },
-  heroSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#ffffffcc", textAlign: "center" },
-  benefitsCard: {
+
+  /* ── Hero ── */
+  hero: {
+    paddingHorizontal: 24,
+    marginBottom: 28,
+    gap: 12,
+  },
+  starBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,215,0,0.15)",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255,215,0,0.30)",
+  },
+  starBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: "#FFD700",
+    letterSpacing: 1.2,
+  },
+  heroHeading: {
+    fontSize: 30,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
+    lineHeight: 38,
+  },
+  heroSub: {
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    lineHeight: 22,
+  },
+
+  /* ── Cards ── */
+  card: {
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 20,
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    backgroundColor: CARD_BG,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 10,
+    gap: 14,
+  },
+  benefitsCard: { marginBottom: 16 },
+  priceCard:    { marginBottom: 16 },
+  cardHeading: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
+    marginBottom: 2,
+  },
+
+  /* ── Benefits ── */
+  benefitRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
-  sectionLabel: { fontSize: 16, fontFamily: "Inter_700Bold", marginBottom: 4 },
-  benefitRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  benefitIcon: {
+  benefitIconWrap: {
     width: 32,
     height: 32,
     borderRadius: 10,
+    backgroundColor: "rgba(192,132,252,0.18)",
     alignItems: "center",
     justifyContent: "center",
   },
-  benefitText: { fontSize: 14, fontFamily: "Inter_400Regular", flex: 1 },
-  payCard: {
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    gap: 14,
+  benefitText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.85)",
+    flex: 1,
   },
+
+  /* ── Merchant box ── */
   merchantBox: {
     borderRadius: 14,
     borderWidth: 1,
+    borderColor: "rgba(255,102,0,0.30)",
+    backgroundColor: "rgba(255,102,0,0.08)",
     padding: 14,
   },
   merchantRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  priceDivider: { height: 1, backgroundColor: "#FF660020", marginVertical: 10 },
-  priceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  priceLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  airtelDot: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FF6600",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  airtelDotText: { fontSize: 18, fontFamily: "Inter_700Bold", color: WHITE },
+  merchantLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+  },
+  merchantCode: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: "#FF8533",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,102,0,0.20)",
+    marginVertical: 10,
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  priceLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+  },
   priceBadge: {
     backgroundColor: "#22C55E",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 10,
   },
-  priceAmount: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff" },
-  airtelDot: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+  priceAmount: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
   },
-  airtelDotText: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#fff" },
-  airtelLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  merchantCode: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  airtelBtn: { borderRadius: 16, overflow: "hidden" },
-  airtelBtnGradient: {
+
+  /* ── CTA ── */
+  ctaWrap: { borderRadius: 16, overflow: "hidden" },
+  ctaGradient: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    justifyContent: "center",
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     gap: 10,
   },
-  airtelDotSm: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
+  ctaLabel: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
+    letterSpacing: 0.2,
   },
-  airtelDotSmText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff" },
-  airtelBtnLabel: { flex: 1, fontSize: 16, fontFamily: "Inter_700Bold", color: "#fff" },
+
+  /* ── Status badges ── */
   approvedBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     padding: 14,
     borderRadius: 12,
+    backgroundColor: "rgba(74,222,128,0.12)",
   },
-  approvedText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  approvedText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: "#4ADE80",
+  },
   pendingBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     padding: 12,
     borderRadius: 12,
+    backgroundColor: "rgba(252,211,77,0.12)",
     marginBottom: 8,
   },
-  pendingText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  pendingSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 12, lineHeight: 18 },
+  pendingText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FCD34D",
+  },
+  pendingSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+
+  /* ── Footer note ── */
   note: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
@@ -279,5 +447,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 32,
     lineHeight: 18,
     marginTop: 4,
+    color: "rgba(255,255,255,0.35)",
   },
 });
