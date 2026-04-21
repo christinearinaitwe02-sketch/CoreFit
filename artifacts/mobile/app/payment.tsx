@@ -69,12 +69,11 @@ const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
   ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
   : "";
 
-const WHATSAPP_URL = "https://wa.me/256702568383";
+const WHATSAPP_BASE = "https://wa.me/256702568383";
+const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";
 
 async function openWhatsApp(message?: string) {
-  const url = message
-    ? `${WHATSAPP_URL}?text=${encodeURIComponent(message)}`
-    : WHATSAPP_URL;
+  const url = `${WHATSAPP_BASE}?text=${encodeURIComponent(message ?? DEFAULT_WA_MSG)}`;
   const supported = await Linking.canOpenURL(url);
   if (supported) {
     await Linking.openURL(url);

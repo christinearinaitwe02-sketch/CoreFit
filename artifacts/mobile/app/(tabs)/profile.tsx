@@ -325,7 +325,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.selectionAsync();
-              Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hi Coach TinaBarks, I need help with CoreHer Fitness."));
+              Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hello Coach TinaBarks, I need help with CoreHer Fitness."));
             }}
             style={[styles.switchCard, { backgroundColor: colors.card }]}
           >

@@ -21,10 +21,10 @@ const WHATSAPP_NUMBER = "256702568383";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 const SUPPORT_EMAIL = "support@coreherfitness.com";
 
+const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";
+
 async function openWhatsApp(message?: string) {
-  const url = message
-    ? `${WHATSAPP_URL}?text=${encodeURIComponent(message)}`
-    : WHATSAPP_URL;
+  const url = `${WHATSAPP_URL}?text=${encodeURIComponent(message ?? DEFAULT_WA_MSG)}`;
   const supported = await Linking.canOpenURL(url);
   if (supported) {
     await Linking.openURL(url);
@@ -105,7 +105,7 @@ export default function SupportScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              openWhatsApp("Hi Coach TinaBarks, I need help with CoreHer Fitness.");
+              openWhatsApp();
             }}
             activeOpacity={0.85}
             style={styles.whatsappBtnWrap}

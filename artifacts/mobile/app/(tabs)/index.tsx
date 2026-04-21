@@ -357,7 +357,7 @@ export default function DashboardScreen() {
 
         {/* WhatsApp help link */}
         <TouchableOpacity
-          onPress={() => Linking.openURL("https://wa.me/256702568383")}
+          onPress={() => Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hello Coach TinaBarks, I need help with CoreHer Fitness."))}
           activeOpacity={0.7}
           style={styles.helpLink}
         >
