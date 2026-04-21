@@ -144,7 +144,7 @@ export default function OnboardingScreen() {
         <View style={[styles.badgeRow, { backgroundColor: colors.primaryLight }]}>
           <Feather name="users" size={14} color={colors.primary} />
           <Text style={[styles.badgeText, { color: colors.primary }]}>
-            Designed for women ages 25–45
+            Designed for women ready to lose belly fat and feel confident again
           </Text>
         </View>
 
