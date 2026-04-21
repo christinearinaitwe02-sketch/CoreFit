@@ -24,6 +24,10 @@ function NativeTabLayout({ isCoach }: { isCoach: boolean }) {
         <Icon sf={{ default: "plus.circle", selected: "plus.circle.fill" }} />
         <Label>Log</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="progress">
+        <Icon sf={{ default: "chart.bar", selected: "chart.bar.fill" }} />
+        <Label>Progress</Label>
+      </NativeTabs.Trigger>
       {isCoach && (
         <NativeTabs.Trigger name="coach">
           <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
@@ -57,8 +61,9 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
           borderTopWidth: 0.5,
           borderTopColor: colors.border,
           elevation: 0,
-          height: isWeb ? 84 : 60,
-          paddingBottom: isWeb ? 34 : 8,
+          height: isWeb ? 84 : 62,
+          paddingBottom: isWeb ? 34 : 10,
+          paddingTop: 6,
         },
         tabBarBackground: () =>
           isIOS ? (
@@ -73,7 +78,7 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
             />
           ) : null,
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontFamily: "Inter_500Medium",
           marginTop: 2,
         },
@@ -87,7 +92,7 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
             isIOS ? (
               <SymbolView name="house.fill" tintColor={color} size={22} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <Feather name="home" size={21} color={color} />
             ),
         }}
       />
@@ -99,7 +104,7 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
             isIOS ? (
               <SymbolView name="flame.fill" tintColor={color} size={22} />
             ) : (
-              <Feather name="zap" size={22} color={color} />
+              <Feather name="zap" size={21} color={color} />
             ),
         }}
       />
@@ -109,9 +114,21 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
           title: "Log",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="plus.circle.fill" tintColor={color} size={26} />
+              <SymbolView name="plus.circle.fill" tintColor={color} size={24} />
             ) : (
-              <Feather name="plus-circle" size={26} color={color} />
+              <Feather name="plus-circle" size={24} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: "Progress",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="chart.bar.fill" tintColor={color} size={22} />
+            ) : (
+              <Feather name="bar-chart-2" size={21} color={color} />
             ),
         }}
       />
@@ -124,15 +141,12 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
               isIOS ? (
                 <SymbolView name="person.2.fill" tintColor={color} size={22} />
               ) : (
-                <Feather name="users" size={22} color={color} />
+                <Feather name="users" size={21} color={color} />
               ),
           }}
         />
       ) : (
-        <Tabs.Screen
-          name="coach"
-          options={{ href: null }}
-        />
+        <Tabs.Screen name="coach" options={{ href: null }} />
       )}
       <Tabs.Screen
         name="profile"
@@ -142,7 +156,7 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
             isIOS ? (
               <SymbolView name="person.circle.fill" tintColor={color} size={22} />
             ) : (
-              <Feather name="user" size={22} color={color} />
+              <Feather name="user" size={21} color={color} />
             ),
         }}
       />
@@ -153,8 +167,6 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
 export default function TabLayout() {
   const { user } = useApp();
   const isCoach = user?.role === "coach";
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout isCoach={isCoach} />;
-  }
+  if (isLiquidGlassAvailable()) return <NativeTabLayout isCoach={isCoach} />;
   return <ClassicTabLayout isCoach={isCoach} />;
 }

@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   ScrollView,
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
+import { AnimatedProgressBar } from "@/components/AnimatedProgressBar";
 
 type LogTab = "meal" | "water" | "sleep";
 
@@ -27,14 +29,30 @@ const MEAL_CATEGORIES = [
 
 type MealCategory = typeof MEAL_CATEGORIES[number]["key"];
 
-const WATER_GLASSES = [1, 2, 3, 4, 5, 6, 7, 8];
+const WATER_GOAL = 8;
 const SLEEP_HOURS = [4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10];
+
+const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
+  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  : "";
+
+async function fetchCalorieEstimate(
+  mealName: string,
+  category: string
+): Promise<{ calories: number; confidence: string; notes: string }> {
+  const res = await fetch(`${API_BASE}/api/estimate-calories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mealName, category }),
+  });
+  if (!res.ok) throw new Error("Failed to estimate");
+  return res.json() as Promise<{ calories: number; confidence: string; notes: string }>;
+}
 
 export default function LogScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { addMeal, addWaterEntry, addSleepEntry, getTodayWater, waterEntries, sleepEntries } =
-    useApp();
+  const { addMeal, addWaterEntry, addSleepEntry, getTodayWater, sleepEntries, meals } = useApp();
 
   const [activeTab, setActiveTab] = useState<LogTab>("meal");
 
@@ -42,6 +60,9 @@ export default function LogScreen() {
   const [mealName, setMealName] = useState("");
   const [mealCategory, setMealCategory] = useState<MealCategory>("breakfast");
   const [mealCalories, setMealCalories] = useState("");
+  const [estimating, setEstimating] = useState(false);
+  const [aiNote, setAiNote] = useState("");
+  const [aiConfidence, setAiConfidence] = useState<"low" | "medium" | "high" | "">("");
 
   // Water state
   const today = new Date().toISOString().split("T")[0];
@@ -57,6 +78,29 @@ export default function LogScreen() {
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  // Today's meals for quick view
+  const todayMeals = meals.filter((m) => m.date === today);
+
+  const handleEstimateCalories = async () => {
+    if (!mealName.trim()) {
+      Alert.alert("Enter a meal name", "Type a meal name first to get an AI estimate.");
+      return;
+    }
+    setEstimating(true);
+    setAiNote("");
+    try {
+      const result = await fetchCalorieEstimate(mealName.trim(), mealCategory);
+      setMealCalories(result.calories.toString());
+      setAiNote(result.notes);
+      setAiConfidence(result.confidence as "low" | "medium" | "high");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      Alert.alert("Estimation failed", "Couldn't reach the AI. Enter calories manually.");
+    } finally {
+      setEstimating(false);
+    }
+  };
+
   const handleSaveMeal = () => {
     if (!mealName.trim()) {
       Alert.alert("Missing info", "Please enter a meal name.");
@@ -71,13 +115,15 @@ export default function LogScreen() {
     });
     setMealName("");
     setMealCalories("");
-    Alert.alert("Logged!", `${mealName} has been added.`);
+    setAiNote("");
+    setAiConfidence("");
+    Alert.alert("Saved!", `${mealName} has been added.`);
   };
 
   const handleSaveWater = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addWaterEntry(today, glasses);
-    Alert.alert("Saved!", `${glasses} glasses of water logged for today.`);
+    Alert.alert("Saved!", `${glasses} glasses of water logged.`);
   };
 
   const handleSaveSleep = () => {
@@ -86,6 +132,9 @@ export default function LogScreen() {
     Alert.alert("Saved!", `${sleepHours} hours of sleep logged.`);
   };
 
+  const confidenceColor =
+    aiConfidence === "high" ? "#22C55E" : aiConfidence === "medium" ? "#F59E0B" : "#94A3B8";
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
@@ -93,9 +142,7 @@ export default function LogScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.screenTitle, { color: colors.foreground }]}>
-          Daily Log
-        </Text>
+        <Text style={[styles.screenTitle, { color: colors.foreground }]}>Daily Log</Text>
 
         {/* Tabs */}
         <View style={[styles.tabRow, { backgroundColor: colors.muted }]}>
@@ -130,12 +177,7 @@ export default function LogScreen() {
               <Text
                 style={[
                   styles.tabLabel,
-                  {
-                    color:
-                      activeTab === t.key
-                        ? colors.primary
-                        : colors.mutedForeground,
-                  },
+                  { color: activeTab === t.key ? colors.primary : colors.mutedForeground },
                 ]}
               >
                 {t.label}
@@ -144,33 +186,26 @@ export default function LogScreen() {
           ))}
         </View>
 
-        {/* Meal Log */}
+        {/* ─── MEAL LOG ─── */}
         {activeTab === "meal" && (
           <View style={styles.panel}>
-            <Text style={[styles.panelTitle, { color: colors.foreground }]}>
-              Log a Meal
-            </Text>
+            <Text style={[styles.panelTitle, { color: colors.foreground }]}>Log a Meal</Text>
 
             {/* Category */}
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
-              Category
-            </Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Category</Text>
             <View style={styles.catRow}>
               {MEAL_CATEGORIES.map((c) => (
                 <TouchableOpacity
                   key={c.key}
                   onPress={() => {
                     setMealCategory(c.key);
+                    setAiNote("");
+                    setAiConfidence("");
                     Haptics.selectionAsync();
                   }}
                   style={[
                     styles.catChip,
-                    {
-                      backgroundColor:
-                        mealCategory === c.key
-                          ? colors.primary
-                          : colors.muted,
-                    },
+                    { backgroundColor: mealCategory === c.key ? colors.primary : colors.muted },
                   ]}
                 >
                   <Feather
@@ -181,10 +216,7 @@ export default function LogScreen() {
                   <Text
                     style={[
                       styles.catLabel,
-                      {
-                        color:
-                          mealCategory === c.key ? "#fff" : colors.mutedForeground,
-                      },
+                      { color: mealCategory === c.key ? "#fff" : colors.mutedForeground },
                     ]}
                   >
                     {c.label}
@@ -194,12 +226,14 @@ export default function LogScreen() {
             </View>
 
             {/* Meal Name */}
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
-              Meal Name *
-            </Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Meal Name *</Text>
             <TextInput
               value={mealName}
-              onChangeText={setMealName}
+              onChangeText={(t) => {
+                setMealName(t);
+                setAiNote("");
+                setAiConfidence("");
+              }}
               placeholder="e.g. Grilled chicken salad"
               placeholderTextColor={colors.mutedForeground}
               style={[
@@ -208,9 +242,54 @@ export default function LogScreen() {
               ]}
             />
 
-            {/* Calories */}
+            {/* AI Calorie Estimate */}
+            <View style={[styles.aiCard, { backgroundColor: colors.primaryLight }]}>
+              <View style={styles.aiHeader}>
+                <View style={[styles.aiIcon, { backgroundColor: colors.primary }]}>
+                  <Feather name="cpu" size={14} color="#fff" />
+                </View>
+                <View style={styles.aiText}>
+                  <Text style={[styles.aiTitle, { color: colors.primary }]}>AI Calorie Estimate</Text>
+                  <Text style={[styles.aiSub, { color: colors.purpleDark }]}>
+                    Type a meal name, then tap estimate
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={handleEstimateCalories}
+                  disabled={estimating}
+                  style={[
+                    styles.estimateBtn,
+                    { backgroundColor: colors.primary, opacity: estimating ? 0.7 : 1 },
+                  ]}
+                >
+                  {estimating ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.estimateBtnText}>Estimate</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+              {aiNote ? (
+                <View style={styles.aiResult}>
+                  <View style={styles.aiResultRow}>
+                    <Text style={[styles.aiCalorieValue, { color: colors.primary }]}>
+                      {mealCalories} kcal
+                    </Text>
+                    <View style={[styles.confidenceBadge, { backgroundColor: confidenceColor + "22" }]}>
+                      <View style={[styles.confidenceDot, { backgroundColor: confidenceColor }]} />
+                      <Text style={[styles.confidenceText, { color: confidenceColor }]}>
+                        {aiConfidence} confidence
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.aiNoteText, { color: colors.purpleDark }]}>{aiNote}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* Calories Manual */}
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
-              Calories (optional)
+              Calories (edit if needed)
             </Text>
             <TextInput
               value={mealCalories}
@@ -224,25 +303,62 @@ export default function LogScreen() {
               ]}
             />
 
-            <PillButton label="Save Meal" onPress={handleSaveMeal} style={{ marginTop: 8 }} />
+            <PillButton label="Save Meal" onPress={handleSaveMeal} style={{ marginTop: 4 }} />
+
+            {/* Today's Meals Quick List */}
+            {todayMeals.length > 0 && (
+              <>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginTop: 8 }]}>
+                  Logged today
+                </Text>
+                {todayMeals.map((m) => (
+                  <View
+                    key={m.id}
+                    style={[styles.mealItem, { backgroundColor: colors.muted }]}
+                  >
+                    <Feather name="check-circle" size={16} color={colors.primary} />
+                    <View style={styles.mealItemInfo}>
+                      <Text style={[styles.mealItemName, { color: colors.foreground }]}>
+                        {m.name}
+                      </Text>
+                      <Text style={[styles.mealItemMeta, { color: colors.mutedForeground }]}>
+                        {m.category} {m.calories ? `· ${m.calories} kcal` : ""}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
           </View>
         )}
 
-        {/* Water Log */}
+        {/* ─── WATER LOG ─── */}
         {activeTab === "water" && (
           <View style={styles.panel}>
-            <Text style={[styles.panelTitle, { color: colors.foreground }]}>
-              Water Intake
-            </Text>
-            <Text style={[styles.waterCount, { color: colors.primary }]}>
-              {glasses}
-            </Text>
-            <Text style={[styles.waterUnit, { color: colors.mutedForeground }]}>
-              glasses today
+            <Text style={[styles.panelTitle, { color: colors.foreground }]}>Water Intake</Text>
+
+            {/* Big number */}
+            <View style={styles.waterCenter}>
+              <Text style={[styles.waterCount, { color: "#38BDF8" }]}>{glasses}</Text>
+              <Text style={[styles.waterUnit, { color: colors.mutedForeground }]}>
+                glasses today
+              </Text>
+            </View>
+
+            {/* Progress bar */}
+            <AnimatedProgressBar
+              progress={glasses / WATER_GOAL}
+              color="#38BDF8"
+              height={10}
+              backgroundColor="#E0F7FF"
+            />
+            <Text style={[styles.waterGoalText, { color: colors.mutedForeground }]}>
+              Goal: {WATER_GOAL} glasses · {glasses >= WATER_GOAL ? "Goal reached!" : `${WATER_GOAL - glasses} more to go`}
             </Text>
 
+            {/* Glass grid */}
             <View style={styles.waterGrid}>
-              {WATER_GLASSES.map((g) => (
+              {Array.from({ length: WATER_GOAL }, (_, i) => i + 1).map((g) => (
                 <TouchableOpacity
                   key={g}
                   onPress={() => {
@@ -252,65 +368,64 @@ export default function LogScreen() {
                   style={[
                     styles.waterGlass,
                     {
-                      backgroundColor:
-                        g <= glasses ? "#38BDF8" : "#E0F7FF",
+                      backgroundColor: g <= glasses ? "#38BDF8" : "#E0F7FF",
                       borderColor: g <= glasses ? "#38BDF8" : "#B0E8F8",
                     },
                   ]}
                 >
-                  <Feather
-                    name="droplet"
-                    size={22}
-                    color={g <= glasses ? "#fff" : "#38BDF8"}
-                  />
-                  <Text
-                    style={[
-                      styles.glassNum,
-                      { color: g <= glasses ? "#fff" : "#38BDF8" },
-                    ]}
-                  >
+                  <Feather name="droplet" size={22} color={g <= glasses ? "#fff" : "#38BDF8"} />
+                  <Text style={[styles.glassNum, { color: g <= glasses ? "#fff" : "#38BDF8" }]}>
                     {g}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
+            {/* +/- buttons */}
             <View style={styles.waterBtns}>
               <PillButton
-                label="Remove Glass"
+                label="−"
                 variant="ghost"
                 size="sm"
                 onPress={() => setGlasses((g) => Math.max(0, g - 1))}
-                icon={<Feather name="minus" size={14} color={"#9B5DE5"} />}
               />
+              <Text style={[styles.waterCountSmall, { color: colors.foreground }]}>
+                {glasses} glasses
+              </Text>
               <PillButton
-                label="Add Glass"
+                label="+"
                 size="sm"
                 onPress={() => setGlasses((g) => Math.min(20, g + 1))}
-                icon={<Feather name="plus" size={14} color="#fff" />}
               />
             </View>
 
-            <PillButton label="Save Water Log" onPress={handleSaveWater} style={{ marginTop: 4 }} />
+            <PillButton label="Save Water Log" onPress={handleSaveWater} />
           </View>
         )}
 
-        {/* Sleep Log */}
+        {/* ─── SLEEP LOG ─── */}
         {activeTab === "sleep" && (
           <View style={styles.panel}>
-            <Text style={[styles.panelTitle, { color: colors.foreground }]}>
-              Sleep Tracker
-            </Text>
-            <Text style={[styles.waterCount, { color: "#818CF8" }]}>
-              {sleepHours}h
-            </Text>
-            <Text style={[styles.waterUnit, { color: colors.mutedForeground }]}>
-              hours slept
+            <Text style={[styles.panelTitle, { color: colors.foreground }]}>Sleep Tracker</Text>
+
+            <View style={styles.waterCenter}>
+              <Text style={[styles.waterCount, { color: "#818CF8" }]}>{sleepHours}h</Text>
+              <Text style={[styles.waterUnit, { color: colors.mutedForeground }]}>
+                hours slept
+              </Text>
+            </View>
+
+            <AnimatedProgressBar
+              progress={sleepHours / 8}
+              color="#818CF8"
+              height={10}
+              backgroundColor="#EEF2FF"
+            />
+            <Text style={[styles.waterGoalText, { color: colors.mutedForeground }]}>
+              Goal: 8 hours · {sleepHours >= 8 ? "Goal reached!" : `${(8 - sleepHours).toFixed(1)} more needed`}
             </Text>
 
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
-              Hours Slept
-            </Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Hours Slept</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -325,10 +440,7 @@ export default function LogScreen() {
                   }}
                   style={[
                     styles.sleepChip,
-                    {
-                      backgroundColor:
-                        sleepHours === h ? "#818CF8" : "#EEF2FF",
-                    },
+                    { backgroundColor: sleepHours === h ? "#818CF8" : "#EEF2FF" },
                   ]}
                 >
                   <Text
@@ -343,9 +455,7 @@ export default function LogScreen() {
               ))}
             </ScrollView>
 
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
-              Sleep Quality
-            </Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Sleep Quality</Text>
             <View style={styles.qualityRow}>
               {(["poor", "fair", "good", "excellent"] as const).map((q) => (
                 <TouchableOpacity
@@ -356,10 +466,7 @@ export default function LogScreen() {
                   }}
                   style={[
                     styles.qualityChip,
-                    {
-                      backgroundColor:
-                        sleepQuality === q ? "#818CF8" : "#EEF2FF",
-                    },
+                    { backgroundColor: sleepQuality === q ? "#818CF8" : "#EEF2FF" },
                   ]}
                 >
                   <Text
@@ -374,7 +481,7 @@ export default function LogScreen() {
               ))}
             </View>
 
-            <PillButton label="Save Sleep Log" onPress={handleSaveSleep} style={{ marginTop: 8 }} />
+            <PillButton label="Save Sleep Log" onPress={handleSaveSleep} />
           </View>
         )}
       </ScrollView>
@@ -406,111 +513,112 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 11,
   },
-  tabLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-  },
-  panel: {
-    marginHorizontal: 20,
-    gap: 12,
-  },
-  panelTitle: {
-    fontSize: 20,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 4,
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    marginBottom: -4,
-  },
-  catRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  tabLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  panel: { marginHorizontal: 20, gap: 12 },
+  panelTitle: { fontSize: 20, fontFamily: "Inter_700Bold", marginBottom: 4 },
+  fieldLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold", letterSpacing: 0.4, textTransform: "uppercase" },
+  catRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   catChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingVertical: 8,
+    paddingVertical: 9,
     paddingHorizontal: 14,
     borderRadius: 100,
   },
-  catLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-  },
+  catLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   input: {
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 13,
     fontSize: 15,
     fontFamily: "Inter_400Regular",
   },
-  waterCount: {
-    fontSize: 64,
-    fontFamily: "Inter_700Bold",
-    textAlign: "center",
-    letterSpacing: -2,
+  // AI card
+  aiCard: {
+    borderRadius: 16,
+    padding: 14,
+    gap: 10,
   },
-  waterUnit: {
-    textAlign: "center",
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    marginTop: -4,
-    marginBottom: 8,
+  aiHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  aiIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  aiText: { flex: 1 },
+  aiTitle: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  aiSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  estimateBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 100,
+    minWidth: 72,
+    alignItems: "center",
+  },
+  estimateBtnText: { color: "#fff", fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  aiResult: { gap: 6 },
+  aiResultRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  aiCalorieValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
+  confidenceBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  confidenceDot: { width: 6, height: 6, borderRadius: 3 },
+  confidenceText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  aiNoteText: { fontSize: 12, fontFamily: "Inter_400Regular", fontStyle: "italic" },
+  // meal list
+  mealItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+  },
+  mealItemInfo: { flex: 1 },
+  mealItemName: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  mealItemMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  // Water
+  waterCenter: { alignItems: "center", gap: 4 },
+  waterCount: { fontSize: 64, fontFamily: "Inter_700Bold", letterSpacing: -2 },
+  waterUnit: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  waterGoalText: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
   waterGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
     justifyContent: "center",
+    marginTop: 4,
   },
   waterGlass: {
-    width: 68,
-    height: 68,
+    width: 66,
+    height: 66,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
     gap: 2,
   },
-  glassNum: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-  },
+  glassNum: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   waterBtns: {
     flexDirection: "row",
     gap: 12,
     justifyContent: "center",
+    alignItems: "center",
     marginTop: 4,
   },
-  sleepRow: {
-    gap: 8,
-    paddingVertical: 2,
-  },
-  sleepChip: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 100,
-  },
-  sleepChipLabel: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-  },
-  qualityRow: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  qualityChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 100,
-  },
-  qualityLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-  },
+  waterCountSmall: { fontSize: 16, fontFamily: "Inter_700Bold", minWidth: 80, textAlign: "center" },
+  // Sleep
+  sleepRow: { gap: 8, paddingVertical: 2 },
+  sleepChip: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 100 },
+  sleepChipLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  qualityRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  qualityChip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 100 },
+  qualityLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });

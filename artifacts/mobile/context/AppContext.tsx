@@ -54,6 +54,11 @@ export interface SleepEntry {
   quality?: "poor" | "fair" | "good" | "excellent";
 }
 
+export interface WeightEntry {
+  date: string;
+  kg: number;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -89,6 +94,9 @@ interface AppContextValue {
 
   sleepEntries: SleepEntry[];
   addSleepEntry: (entry: Omit<SleepEntry, "id">) => void;
+
+  weightEntries: WeightEntry[];
+  addWeightEntry: (kg: number) => void;
 
   clients: Client[];
 
@@ -151,81 +159,19 @@ const daysAgo = (n: number) => {
 };
 
 const SEED_WORKOUTS: WorkoutEntry[] = [
-  {
-    id: "w1",
-    date: today(),
-    type: "hiit",
-    duration: 30,
-    calories: 320,
-    notes: "Morning HIIT circuit",
-  },
-  {
-    id: "w2",
-    date: daysAgo(1),
-    type: "strength",
-    duration: 45,
-    calories: 280,
-  },
-  {
-    id: "w3",
-    date: daysAgo(2),
-    type: "cardio",
-    duration: 40,
-    calories: 350,
-    notes: "5k run",
-  },
-  {
-    id: "w4",
-    date: daysAgo(3),
-    type: "yoga",
-    duration: 60,
-    calories: 180,
-  },
-  {
-    id: "w5",
-    date: daysAgo(5),
-    type: "cycling",
-    duration: 50,
-    calories: 400,
-  },
+  { id: "w1", date: today(), type: "hiit", duration: 30, calories: 320, notes: "Morning HIIT circuit" },
+  { id: "w2", date: daysAgo(1), type: "strength", duration: 45, calories: 280 },
+  { id: "w3", date: daysAgo(2), type: "cardio", duration: 40, calories: 350, notes: "5k run" },
+  { id: "w4", date: daysAgo(3), type: "yoga", duration: 60, calories: 180 },
+  { id: "w5", date: daysAgo(5), type: "cycling", duration: 50, calories: 400 },
 ];
 
 const SEED_MEALS: MealEntry[] = [
-  {
-    id: "m1",
-    date: today(),
-    category: "breakfast",
-    name: "Oatmeal with berries",
-    calories: 320,
-  },
-  {
-    id: "m2",
-    date: today(),
-    category: "lunch",
-    name: "Grilled chicken salad",
-    calories: 450,
-  },
-  {
-    id: "m3",
-    date: daysAgo(1),
-    category: "breakfast",
-    name: "Avocado toast",
-    calories: 380,
-  },
-  {
-    id: "m4",
-    date: daysAgo(1),
-    category: "lunch",
-    name: "Quinoa bowl",
-    calories: 520,
-  },
-  {
-    id: "m5",
-    date: daysAgo(1),
-    category: "dinner",
-    name: "Salmon with veggies",
-    calories: 580,
-  },
+  { id: "m1", date: today(), category: "breakfast", name: "Oatmeal with berries", calories: 320 },
+  { id: "m2", date: today(), category: "lunch", name: "Grilled chicken salad", calories: 450 },
+  { id: "m3", date: daysAgo(1), category: "breakfast", name: "Avocado toast", calories: 380 },
+  { id: "m4", date: daysAgo(1), category: "lunch", name: "Quinoa bowl", calories: 520 },
+  { id: "m5", date: daysAgo(1), category: "dinner", name: "Salmon with veggies", calories: 580 },
 ];
 
 const SEED_WATER: WaterEntry[] = [
@@ -243,6 +189,14 @@ const SEED_SLEEP: SleepEntry[] = [
   { id: "sl5", date: daysAgo(4), hours: 9, quality: "excellent" },
 ];
 
+const SEED_WEIGHTS: WeightEntry[] = [
+  { date: daysAgo(30), kg: 67.2 },
+  { date: daysAgo(21), kg: 66.5 },
+  { date: daysAgo(14), kg: 65.8 },
+  { date: daysAgo(7), kg: 65.1 },
+  { date: daysAgo(1), kg: 64.6 },
+];
+
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -251,6 +205,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [meals, setMeals] = useState<MealEntry[]>(SEED_MEALS);
   const [waterEntries, setWaterEntries] = useState<WaterEntry[]>(SEED_WATER);
   const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>(SEED_SLEEP);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>(SEED_WEIGHTS);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -260,9 +215,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const loadData = async () => {
     try {
       const savedUser = await AsyncStorage.getItem("user");
-      if (savedUser) {
-        setUserState(JSON.parse(savedUser));
-      }
+      if (savedUser) setUserState(JSON.parse(savedUser));
       const savedWorkouts = await AsyncStorage.getItem("workouts");
       if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
       const savedMeals = await AsyncStorage.getItem("meals");
@@ -271,6 +224,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (savedWater) setWaterEntries(JSON.parse(savedWater));
       const savedSleep = await AsyncStorage.getItem("sleepEntries");
       if (savedSleep) setSleepEntries(JSON.parse(savedSleep));
+      const savedWeight = await AsyncStorage.getItem("weightEntries");
+      if (savedWeight) setWeightEntries(JSON.parse(savedWeight));
     } catch (e) {
       // ignore
     } finally {
@@ -280,11 +235,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setUser = useCallback(async (u: User | null) => {
     setUserState(u);
-    if (u) {
-      await AsyncStorage.setItem("user", JSON.stringify(u));
-    } else {
-      await AsyncStorage.removeItem("user");
-    }
+    if (u) await AsyncStorage.setItem("user", JSON.stringify(u));
+    else await AsyncStorage.removeItem("user");
   }, []);
 
   const addWorkout = useCallback(
@@ -330,12 +282,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const existing = waterEntries.find((w) => w.date === date);
       let updated: WaterEntry[];
       if (existing) {
-        updated = waterEntries.map((w) =>
-          w.date === date ? { ...w, glasses } : w
-        );
+        updated = waterEntries.map((w) => (w.date === date ? { ...w, glasses } : w));
       } else {
-        const entry: WaterEntry = { id: generateId(), date, glasses };
-        updated = [entry, ...waterEntries];
+        updated = [{ id: generateId(), date, glasses }, ...waterEntries];
       }
       setWaterEntries(updated);
       await AsyncStorage.setItem("waterEntries", JSON.stringify(updated));
@@ -365,11 +314,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [sleepEntries]
   );
 
+  const addWeightEntry = useCallback(
+    async (kg: number) => {
+      const t = today();
+      const existing = weightEntries.find((w) => w.date === t);
+      let updated: WeightEntry[];
+      if (existing) {
+        updated = weightEntries.map((w) => (w.date === t ? { ...w, kg } : w));
+      } else {
+        updated = [...weightEntries, { date: t, kg }];
+      }
+      setWeightEntries(updated);
+      await AsyncStorage.setItem("weightEntries", JSON.stringify(updated));
+    },
+    [weightEntries]
+  );
+
   const getTodaySummary = useCallback((): DaySummary => {
     const t = today();
-    const caloriesBurned = workouts
-      .filter((w) => w.date === t)
-      .reduce((sum, w) => sum + w.calories, 0);
+    const caloriesBurned = workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0);
     const mealsLogged = meals.filter((m) => m.date === t).length;
     const waterGlasses = waterEntries.find((w) => w.date === t)?.glasses ?? 0;
     const sleepHours = sleepEntries.find((s) => s.date === t)?.hours ?? 0;
@@ -378,36 +341,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getWeekSummary = useCallback((): DaySummary[] => {
     return Array.from({ length: 7 }, (_, i) => {
-      const d = daysAgo(i);
-      const caloriesBurned = workouts
-        .filter((w) => w.date === d)
-        .reduce((sum, w) => sum + w.calories, 0);
+      const d = daysAgo(6 - i);
+      const caloriesBurned = workouts.filter((w) => w.date === d).reduce((s, w) => s + w.calories, 0);
       const mealsLogged = meals.filter((m) => m.date === d).length;
       const waterGlasses = waterEntries.find((w) => w.date === d)?.glasses ?? 0;
       const sleepHours = sleepEntries.find((s) => s.date === d)?.hours ?? 0;
       return { date: d, caloriesBurned, mealsLogged, waterGlasses, sleepHours };
-    }).reverse();
+    });
   }, [workouts, meals, waterEntries, sleepEntries]);
 
   return (
     <AppContext.Provider
       value={{
-        user,
-        setUser,
-        workouts,
-        addWorkout,
-        removeWorkout,
-        meals,
-        addMeal,
-        removeMeal,
-        waterEntries,
-        addWaterEntry,
-        getTodayWater,
-        sleepEntries,
-        addSleepEntry,
+        user, setUser,
+        workouts, addWorkout, removeWorkout,
+        meals, addMeal, removeMeal,
+        waterEntries, addWaterEntry, getTodayWater,
+        sleepEntries, addSleepEntry,
+        weightEntries, addWeightEntry,
         clients: DEMO_CLIENTS,
-        getTodaySummary,
-        getWeekSummary,
+        getTodaySummary, getWeekSummary,
         isLoading,
       }}
     >
