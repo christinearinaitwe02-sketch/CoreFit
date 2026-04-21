@@ -1,9 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -33,6 +34,29 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!success) return;
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 60,
+      friction: 6,
+    }).start();
+    const interval = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(interval);
+          router.replace("/auth/login");
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [success]);
 
   const handleReset = async () => {
     if (!code.trim() || !newPassword || !confirmPassword) {
@@ -72,17 +96,42 @@ export default function ResetPasswordScreen() {
   if (success) {
     return (
       <View style={[styles.flex, styles.successCenter]}>
-        <LinearGradient colors={["#2D0B4E", "#4A0876", "#6A0DAD"]} style={styles.successIcon}>
-          <Feather name="check" size={36} color="#fff" />
-        </LinearGradient>
+        <Animated.View style={[styles.successIconWrap, { transform: [{ scale: scaleAnim }] }]}>
+          <View style={styles.successIconOuter}>
+            <View style={styles.successIconInner}>
+              <Feather name="check" size={40} color="#fff" />
+            </View>
+          </View>
+        </Animated.View>
+
         <Text style={styles.successTitle}>Password updated!</Text>
-        <Text style={styles.successDesc}>Your password has been reset successfully. You can now sign in.</Text>
+        <Text style={styles.successMessage}>
+          Your password has been updated successfully.
+        </Text>
+        <Text style={styles.successDesc}>
+          You can now use your new password to sign in.
+        </Text>
+
+        <View style={styles.countdownBadge}>
+          <Text style={styles.countdownText}>
+            Redirecting to login in{" "}
+            <Text style={styles.countdownNum}>{countdown}</Text>
+            {countdown === 1 ? " second" : " seconds"}...
+          </Text>
+        </View>
+
         <Pressable
-          style={({ pressed }) => [styles.button, { marginTop: 28 }, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [styles.button, { marginTop: 8 }, pressed && styles.buttonPressed]}
           onPress={() => router.replace("/auth/login")}
         >
-          <LinearGradient colors={["#6A0DAD", "#FF7F7F"]} style={styles.buttonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.buttonText}>Sign In</Text>
+          <LinearGradient
+            colors={["#16A34A", "#22C55E"]}
+            style={styles.buttonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Feather name="log-in" size={18} color="#fff" />
+            <Text style={styles.buttonText}>Go to Login</Text>
           </LinearGradient>
         </Pressable>
       </View>
@@ -193,27 +242,65 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 32,
   },
-  successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  successIconWrap: {
+    marginBottom: 28,
+  },
+  successIconOuter: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#DCFCE7",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+  },
+  successIconInner: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: "#22C55E",
+    justifyContent: "center",
+    alignItems: "center",
   },
   successTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontFamily: "Inter_700Bold",
-    color: "#2D0B4E",
-    marginBottom: 12,
+    color: "#15803D",
+    marginBottom: 10,
     textAlign: "center",
   },
+  successMessage: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: "#166534",
+    textAlign: "center",
+    marginBottom: 6,
+  },
   successDesc: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
     color: colors.light.mutedForeground,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 21,
+    marginBottom: 24,
+  },
+  countdownBadge: {
+    backgroundColor: "#F0FDF4",
+    borderRadius: 100,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  countdownText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: "#15803D",
+  },
+  countdownNum: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 15,
+    color: "#16A34A",
   },
   header: {
     paddingHorizontal: 28,
@@ -319,6 +406,9 @@ const styles = StyleSheet.create({
   buttonGradient: {
     paddingVertical: 16,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
   },
   buttonText: {
     fontSize: 16,
