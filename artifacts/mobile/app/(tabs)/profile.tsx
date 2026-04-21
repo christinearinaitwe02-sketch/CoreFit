@@ -339,6 +339,22 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* ── Account Settings (all roles) ────────────────────────────────── */}
+        <View style={styles.section}>
+          <SectionHead title="Account" colors={colors} />
+          <RowItem
+            icon="lock"
+            label="Change Password"
+            sub="Update your login password"
+            iconColor={colors.primary}
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push("/change-password");
+            }}
+            colors={colors}
+          />
+        </View>
+
         {/* ── Help & Support (all roles) ──────────────────────────────────── */}
         <View style={styles.section}>
           <SectionHead title="Help & Support" colors={colors} />

@@ -118,6 +118,56 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
+router.patch("/auth/change-password", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+
+    const { currentPassword, newPassword } = req.body as {
+      currentPassword?: string;
+      newPassword?: string;
+    };
+
+    if (!currentPassword?.trim() || !newPassword?.trim()) {
+      return res.status(400).json({ error: "Current and new password are required." });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters." });
+    }
+
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, decoded.id))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "User not found." });
+    }
+
+    const user = rows[0];
+    const match = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!match) {
+      return res.status(401).json({ error: "Current password is incorrect." });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db
+      .update(usersTable)
+      .set({ passwordHash: newHash })
+      .where(eq(usersTable.id, user.id));
+
+    return res.json({ success: true });
+  } catch {
+    return res.status(401).json({ error: "Invalid or expired token." });
+  }
+});
+
 router.get("/auth/me", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
