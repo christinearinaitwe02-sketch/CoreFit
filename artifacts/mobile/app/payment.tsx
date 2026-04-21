@@ -18,16 +18,22 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
-import { PillButton } from "@/components/PillButton";
 
 type Step = "instructions" | "form" | "success";
 
-const STEPS = [
+const DIAL_STEPS = [
   { num: 1, text: "Dial *185#" },
   { num: 2, text: "Select Pay Merchant" },
   { num: 3, text: "Enter Merchant Code: 7071895" },
   { num: 4, text: "Enter amount" },
   { num: 5, text: "Enter your PIN to confirm" },
+];
+
+const BENEFITS = [
+  { icon: "trending-down", label: "Lose belly fat" },
+  { icon: "zap", label: "Daily guided workouts" },
+  { icon: "book-open", label: "Meal tracking" },
+  { icon: "heart", label: "Coach support" },
 ];
 
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
@@ -93,38 +99,91 @@ export default function PaymentScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Header row */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => (step === "instructions" ? router.back() : setStep("instructions"))} style={styles.backBtn}>
+            <TouchableOpacity
+              onPress={() =>
+                step === "instructions" ? router.back() : setStep("instructions")
+              }
+              style={styles.backBtn}
+            >
               <Feather name="arrow-left" size={22} color={colors.foreground} />
             </TouchableOpacity>
             <Text style={[styles.title, { color: colors.foreground }]}>
-              {step === "instructions" ? "How to Pay" : step === "form" ? "Confirm Payment" : "Payment Submitted"}
+              {step === "instructions"
+                ? "Upgrade to Premium"
+                : step === "form"
+                ? "Confirm Payment"
+                : "Payment Submitted"}
             </Text>
             <View style={{ width: 36 }} />
           </View>
 
+          {/* ── STEP 1: Instructions ── */}
           {step === "instructions" && (
             <View>
+              {/* Hero banner */}
+              <LinearGradient
+                colors={["#6A0DAD", "#9B5DE5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroBanner}
+              >
+                <Text style={styles.heroHeadline}>
+                  Start Your 90-Day{"\n"}Transformation Today
+                </Text>
+                <Text style={styles.heroSub}>
+                  Join women who are reshaping their bodies and confidence
+                </Text>
+
+                {/* Benefits grid */}
+                <View style={styles.benefitsGrid}>
+                  {BENEFITS.map((b) => (
+                    <View key={b.label} style={styles.benefitItem}>
+                      <View style={styles.benefitIconWrap}>
+                        <Feather name={b.icon as any} size={15} color="#fff" />
+                      </View>
+                      <Text style={styles.benefitLabel}>{b.label}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Urgency pill */}
+                <View style={styles.urgencyPill}>
+                  <Feather name="alert-circle" size={13} color="#FF6600" />
+                  <Text style={styles.urgencyText}>Limited coaching slots available</Text>
+                </View>
+              </LinearGradient>
+
+              {/* Payment instructions card */}
               <View style={[styles.card, { backgroundColor: colors.card }]}>
                 <View style={styles.airtelHeader}>
                   <View style={[styles.airtelBadge, { backgroundColor: "#FF6600" }]}>
                     <Text style={styles.airtelBadgeText}>A</Text>
                   </View>
                   <View>
-                    <Text style={[styles.airtelName, { color: colors.foreground }]}>Airtel Money Uganda</Text>
-                    <Text style={[styles.merchantCode, { color: "#FF6600" }]}>Merchant Code: 7071895</Text>
+                    <Text style={[styles.airtelName, { color: colors.foreground }]}>
+                      Airtel Money Uganda
+                    </Text>
+                    <Text style={[styles.merchantCode, { color: "#FF6600" }]}>
+                      Merchant Code: 7071895
+                    </Text>
                   </View>
                 </View>
 
                 <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                <Text style={[styles.stepsTitle, { color: colors.foreground }]}>Follow these steps:</Text>
-                {STEPS.map((s) => (
+                <Text style={[styles.stepsTitle, { color: colors.foreground }]}>
+                  Follow these steps:
+                </Text>
+                {DIAL_STEPS.map((s) => (
                   <View key={s.num} style={styles.stepRow}>
                     <View style={[styles.stepNum, { backgroundColor: "#6A0DAD18" }]}>
                       <Text style={[styles.stepNumText, { color: "#6A0DAD" }]}>{s.num}</Text>
                     </View>
-                    <Text style={[styles.stepText, { color: colors.foreground }]}>{s.text}</Text>
+                    <Text style={[styles.stepText, { color: colors.foreground }]}>
+                      {s.text}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -132,27 +191,43 @@ export default function PaymentScreen() {
               <View style={[styles.noteBox, { backgroundColor: "#6A0DAD12" }]}>
                 <Feather name="info" size={15} color="#6A0DAD" />
                 <Text style={[styles.noteText, { color: colors.foreground }]}>
-                  After completing the payment, return here and tap "I Have Paid" to submit your confirmation.
+                  After completing the payment, tap "Pay Now" below to submit your confirmation.
                 </Text>
               </View>
 
-              <View style={styles.btnWrap}>
-                <PillButton
-                  label="I Have Paid"
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    setStep("form");
-                  }}
-                />
-              </View>
+              {/* Prominent Pay Now button */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  setStep("form");
+                }}
+                activeOpacity={0.88}
+                style={styles.payNowWrap}
+              >
+                <LinearGradient
+                  colors={["#6A0DAD", "#9B5DE5"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.payNowBtn}
+                >
+                  <Feather name="credit-card" size={20} color="#fff" />
+                  <Text style={styles.payNowLabel}>Pay Now</Text>
+                  <Feather name="arrow-right" size={20} color="#fff" />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <Text style={[styles.secureNote, { color: colors.mutedForeground }]}>
+                Secure payment via Airtel Money Uganda
+              </Text>
             </View>
           )}
 
+          {/* ── STEP 2: Form ── */}
           {step === "form" && (
             <View>
               <View style={[styles.card, { backgroundColor: colors.card }]}>
-                <Text style={[styles.formTitle, { color: colors.foreground }]}>
-                  Please provide your payment details so we can verify your transaction.
+                <Text style={[styles.formTitle, { color: colors.mutedForeground }]}>
+                  Provide your payment details so we can verify your transaction.
                 </Text>
 
                 <View style={styles.field}>
@@ -208,16 +283,30 @@ export default function PaymentScreen() {
                 </View>
               </View>
 
-              <View style={styles.btnWrap}>
-                {loading ? (
-                  <ActivityIndicator color="#6A0DAD" />
-                ) : (
-                  <PillButton label="Submit Confirmation" onPress={handleSubmit} />
-                )}
-              </View>
+              {/* Submit button */}
+              {loading ? (
+                <ActivityIndicator color="#6A0DAD" style={{ marginTop: 16 }} />
+              ) : (
+                <TouchableOpacity
+                  onPress={handleSubmit}
+                  activeOpacity={0.88}
+                  style={styles.payNowWrap}
+                >
+                  <LinearGradient
+                    colors={["#6A0DAD", "#9B5DE5"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.payNowBtn}
+                  >
+                    <Feather name="check-circle" size={20} color="#fff" />
+                    <Text style={styles.payNowLabel}>Submit Confirmation</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
+          {/* ── STEP 3: Success ── */}
           {step === "success" && (
             <View style={styles.successWrap}>
               <LinearGradient
@@ -238,14 +327,20 @@ export default function PaymentScreen() {
                   Your coach will review and approve your payment. This typically takes less than 24 hours.
                 </Text>
               </View>
-              <View style={styles.btnWrap}>
-                <PillButton
-                  label="Back to Profile"
-                  onPress={() => {
-                    router.replace("/(tabs)/profile");
-                  }}
-                />
-              </View>
+              <TouchableOpacity
+                onPress={() => router.replace("/(tabs)/profile")}
+                activeOpacity={0.88}
+                style={[styles.payNowWrap, { width: "100%" }]}
+              >
+                <LinearGradient
+                  colors={["#6A0DAD", "#9B5DE5"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.payNowBtn}
+                >
+                  <Text style={styles.payNowLabel}>Back to Profile</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -265,6 +360,69 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 6 },
   title: { fontSize: 18, fontFamily: "Inter_700Bold" },
+
+  heroBanner: {
+    marginHorizontal: 20,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 16,
+    gap: 14,
+  },
+  heroHeadline: {
+    fontSize: 24,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    lineHeight: 32,
+  },
+  heroSub: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: "#ffffff99",
+    lineHeight: 19,
+  },
+  benefitsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 4,
+  },
+  benefitItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    width: "46%",
+  },
+  benefitIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  benefitLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
+    flex: 1,
+  },
+  urgencyPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    marginTop: 4,
+  },
+  urgencyText: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FF6600",
+  },
+
   card: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -295,17 +453,47 @@ const styles = StyleSheet.create({
   },
   stepNumText: { fontSize: 13, fontFamily: "Inter_700Bold" },
   stepText: { fontSize: 14, fontFamily: "Inter_400Regular", flex: 1 },
+
   noteBox: {
     marginHorizontal: 20,
     borderRadius: 14,
     padding: 14,
     flexDirection: "row",
     gap: 10,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   noteText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 19 },
-  btnWrap: { paddingHorizontal: 20, marginTop: 4 },
-  formTitle: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, color: "#666" },
+
+  payNowWrap: { paddingHorizontal: 20, marginBottom: 10 },
+  payNowBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderRadius: 18,
+    paddingVertical: 18,
+    shadowColor: "#6A0DAD",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  payNowLabel: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    letterSpacing: 0.3,
+  },
+
+  secureNote: {
+    textAlign: "center",
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
+    marginBottom: 8,
+  },
+
+  formTitle: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   input: {
@@ -317,6 +505,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   fieldHint: { fontSize: 11, fontFamily: "Inter_400Regular" },
+
   successWrap: {
     alignItems: "center",
     paddingHorizontal: 28,
