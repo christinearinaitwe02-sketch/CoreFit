@@ -98,7 +98,7 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                 <View style={[styles.priceBox, { backgroundColor: colors.muted }]}>
                   <View>
                     <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>
-                      One-time fee
+                      Monthly fee
                     </Text>
                     <Text style={[styles.priceAmount, { color: colors.foreground }]}>
                       UGX 75,000

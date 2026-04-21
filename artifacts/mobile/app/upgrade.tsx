@@ -136,7 +136,7 @@ export default function UpgradeScreen() {
             </View>
             <View style={styles.divider} />
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>One-time fee</Text>
+              <Text style={styles.priceLabel}>Monthly fee</Text>
               <View style={styles.priceBadge}>
                 <Text style={styles.priceAmount}>UGX 75,000</Text>
               </View>

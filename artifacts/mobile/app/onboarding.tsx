@@ -169,7 +169,7 @@ export default function OnboardingScreen() {
               </View>
               <View style={styles.premiumCardPricePill}>
                 <Text style={styles.premiumCardPriceAmt}>UGX 75,000</Text>
-                <Text style={styles.premiumCardPriceSub}>one-time</Text>
+                <Text style={styles.premiumCardPriceSub}>per month</Text>
               </View>
             </View>
           </LinearGradient>

@@ -140,7 +140,7 @@ export default function DashboardScreen() {
                   </Text>
                 </View>
                 <View style={styles.premiumPriceBox}>
-                  <Text style={styles.premiumPriceSub}>One-time</Text>
+                  <Text style={styles.premiumPriceSub}>Monthly</Text>
                   <Text style={styles.premiumPriceAmt}>UGX{"\n"}75,000</Text>
                 </View>
               </View>
