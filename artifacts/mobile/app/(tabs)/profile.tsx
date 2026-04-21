@@ -353,6 +353,17 @@ export default function ProfileScreen() {
             }}
             colors={colors}
           />
+          <RowItem
+            icon="trash-2"
+            label="Delete My Account"
+            sub="Permanently remove your account and data"
+            iconColor="#DC2626"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push("/delete-account");
+            }}
+            colors={colors}
+          />
         </View>
 
         {/* ── Help & Support (all roles) ──────────────────────────────────── */}

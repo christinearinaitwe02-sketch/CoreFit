@@ -103,6 +103,17 @@ router.post("/auth/login", async (req, res) => {
     }
 
     const user = rows[0];
+
+    if (user.deletedAt) {
+      const deletedDate = new Date(user.deletedAt);
+      const recoveryDeadline = new Date(deletedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (new Date() < recoveryDeadline) {
+        await db.update(usersTable).set({ deletedAt: null }).where(eq(usersTable.id, user.id));
+      } else {
+        return res.status(401).json({ error: "This account has been permanently deleted." });
+      }
+    }
+
     const match = await bcrypt.compare(password, user.passwordHash);
 
     if (!match) {
@@ -276,9 +287,66 @@ router.get("/auth/me", async (req, res) => {
       return res.status(401).json({ error: "User not found" });
     }
 
+    const foundUser = rows[0];
+    if (foundUser.deletedAt) {
+      const deletedDate = new Date(foundUser.deletedAt);
+      const recoveryDeadline = new Date(deletedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (new Date() < recoveryDeadline) {
+        await db
+          .update(usersTable)
+          .set({ deletedAt: null })
+          .where(eq(usersTable.id, foundUser.id));
+      } else {
+        return res.status(401).json({ error: "This account has been permanently deleted." });
+      }
+    }
+
     return res.json({ user: safeUser(rows[0]) });
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });
+  }
+});
+
+router.delete("/auth/account", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+
+    const { password } = req.body as { password?: string };
+    if (!password?.trim()) {
+      return res.status(400).json({ error: "Password is required to delete your account." });
+    }
+
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, decoded.id))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Account not found." });
+    }
+
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) {
+      return res.status(401).json({ error: "Incorrect password. Please try again." });
+    }
+
+    const deletedAt = new Date().toISOString();
+    await db
+      .update(usersTable)
+      .set({ deletedAt })
+      .where(eq(usersTable.id, user.id));
+
+    return res.json({ success: true, deletedAt });
+  } catch {
+    return res.status(401).json({ error: "Invalid or expired token." });
   }
 });
 

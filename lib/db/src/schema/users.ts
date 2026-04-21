@@ -11,6 +11,7 @@ export const usersTable = pgTable("users", {
   createdAt: text("created_at").notNull(),
   resetToken: text("reset_token"),
   resetTokenExpiry: text("reset_token_expiry"),
+  deletedAt: text("deleted_at"),
 });
 
 export type AppUser = typeof usersTable.$inferSelect;
