@@ -15,26 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-
-const COACH_NAME = "Coach TinaBarks";
-const WHATSAPP_NUMBER = "256702568383";
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
-const SUPPORT_EMAIL = "support@coreherfitness.com";
-
-const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";
-
-async function openWhatsApp(message?: string) {
-  const url = `${WHATSAPP_URL}?text=${encodeURIComponent(message ?? DEFAULT_WA_MSG)}`;
-  const supported = await Linking.canOpenURL(url);
-  if (supported) {
-    await Linking.openURL(url);
-  } else {
-    Alert.alert(
-      "WhatsApp not found",
-      `Please message ${COACH_NAME} directly on +${WHATSAPP_NUMBER}`
-    );
-  }
-}
+import { useApp } from "@/context/AppContext";
 
 const FAQS = [
   {
@@ -59,6 +40,24 @@ export default function SupportScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { coachProfile } = useApp();
+
+  const whatsappNumber = coachProfile.phone.replace(/\D/g, "");
+  const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+  const defaultMsg = `Hello ${coachProfile.name}, I need help with CoreHer Fitness.`;
+
+  const openWhatsApp = async (message?: string) => {
+    const url = `${whatsappUrl}?text=${encodeURIComponent(message ?? defaultMsg)}`;
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert(
+        "WhatsApp not found",
+        `Please message ${coachProfile.name} directly on ${coachProfile.phone}`
+      );
+    }
+  };
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -99,7 +98,7 @@ export default function SupportScreen() {
             Chat with your Coach
           </Text>
           <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>
-            {COACH_NAME} is available to help with payments, workouts, and your progress.
+            {coachProfile.name} is available to help with payments, workouts, and your progress.
           </Text>
 
           <TouchableOpacity
@@ -127,10 +126,12 @@ export default function SupportScreen() {
 
           <View style={[styles.coachRow, { backgroundColor: colors.muted }]}>
             <View style={[styles.coachAvatar, { backgroundColor: "#6A0DAD" }]}>
-              <Text style={styles.coachAvatarText}>T</Text>
+              <Text style={styles.coachAvatarText}>
+                {coachProfile.name.charAt(0).toUpperCase()}
+              </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.coachName, { color: colors.foreground }]}>{COACH_NAME}</Text>
+              <Text style={[styles.coachName, { color: colors.foreground }]}>{coachProfile.name}</Text>
               <Text style={[styles.coachRole, { color: colors.mutedForeground }]}>
                 Your Personal Fitness Coach
               </Text>
@@ -146,7 +147,7 @@ export default function SupportScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.selectionAsync();
-              openWhatsApp("Hi Coach TinaBarks, I have a payment question.");
+              openWhatsApp(`Hi ${coachProfile.name}, I have a payment question.`);
             }}
             style={[styles.quickRow, { borderBottomColor: colors.border }]}
           >
@@ -163,7 +164,7 @@ export default function SupportScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.selectionAsync();
-              openWhatsApp("Hi Coach TinaBarks, I need help with my workout plan.");
+              openWhatsApp(`Hi ${coachProfile.name}, I need help with my workout plan.`);
             }}
             style={[styles.quickRow, { borderBottomColor: colors.border }]}
           >
@@ -180,7 +181,7 @@ export default function SupportScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.selectionAsync();
-              openWhatsApp("Hi Coach TinaBarks, I have a question about my nutrition.");
+              openWhatsApp(`Hi ${coachProfile.name}, I have a question about my nutrition.`);
             }}
             style={[styles.quickRow, { borderBottomColor: "transparent" }]}
           >

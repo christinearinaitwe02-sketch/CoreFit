@@ -9,6 +9,22 @@ import React, {
 
 export type UserRole = "client" | "coach";
 
+export interface CoachProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+}
+
+const DEFAULT_COACH: CoachProfile = {
+  id: "coach-tina-barks",
+  name: "Coach TinaBarks",
+  email: "coach@corehrfitness.com",
+  phone: "+256702568383",
+  role: "coach",
+};
+
 export interface User {
   id: string;
   name: string;
@@ -83,6 +99,7 @@ interface AppContextValue {
   setUser: (user: User | null) => void;
   setPaymentPending: () => void;
   checkPremiumStatus: () => Promise<void>;
+  coachProfile: CoachProfile;
 
   workouts: WorkoutEntry[];
   addWorkout: (workout: Omit<WorkoutEntry, "id">) => void;
@@ -220,9 +237,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [challengeStartDate, setChallengeStartDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
 
   useEffect(() => {
     loadData();
+    fetchCoachProfile();
   }, []);
 
   const loadData = async () => {
@@ -268,6 +287,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const API_BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
     ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
     : "";
+
+  const fetchCoachProfile = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/coach`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.coach?.name) {
+        setCoachProfile(data.coach as CoachProfile);
+      }
+    } catch {
+      // keep default
+    }
+  };
 
   const checkPremiumStatus = useCallback(async () => {
     if (!user?.id) return;
@@ -427,7 +459,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        user, setUser, setPaymentPending, checkPremiumStatus,
+        user, setUser, setPaymentPending, checkPremiumStatus, coachProfile,
         workouts, addWorkout, removeWorkout,
         meals, addMeal, removeMeal,
         waterEntries, addWaterEntry, getTodayWater,

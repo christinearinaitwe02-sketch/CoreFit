@@ -57,6 +57,7 @@ export default function DashboardScreen() {
     challengeStartDate,
     startChallenge,
     getChallengeDay,
+    coachProfile,
   } = useApp();
   const goals = useGoals();
   const challengeDay = getChallengeDay();
@@ -418,7 +419,11 @@ export default function DashboardScreen() {
 
         {/* WhatsApp help link */}
         <TouchableOpacity
-          onPress={() => Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hello Coach TinaBarks, I need help with CoreHer Fitness."))}
+          onPress={() => {
+            const phone = coachProfile.phone.replace(/\D/g, "");
+            const msg = encodeURIComponent(`Hello ${coachProfile.name}, I need help with CoreHer Fitness.`);
+            Linking.openURL(`https://wa.me/${phone}?text=${msg}`);
+          }}
           activeOpacity={0.7}
           style={styles.helpLink}
         >

@@ -15,32 +15,37 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useApp, User } from "@/context/AppContext";
+import { useApp, User, CoachProfile } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
 
-const DEMO_USERS: User[] = [
-  {
-    id: "client1",
-    name: "Sofia Martinez",
-    email: "sofia@example.com",
-    role: "client",
-    goals: { calories: 400, water: 2.5, sleep: 8, workouts: 5 },
-  },
-  {
-    id: "coach1",
-    name: "Coach Alex",
-    email: "coach@fittrackpro.com",
-    role: "coach",
-    goals: { calories: 500, water: 3.0, sleep: 7, workouts: 6 },
-  },
-];
+const DEMO_CLIENT: User = {
+  id: "client1",
+  name: "Sofia Martinez",
+  email: "sofia@example.com",
+  role: "client",
+  goals: { calories: 400, water: 2.5, sleep: 8, workouts: 5 },
+};
+
+function buildDemoUsers(coach: CoachProfile): User[] {
+  return [
+    DEMO_CLIENT,
+    {
+      id: coach.id,
+      name: coach.name,
+      email: coach.email,
+      role: "coach",
+      goals: { calories: 500, water: 3.0, sleep: 7, workouts: 6 },
+    },
+  ];
+}
 
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, setUser, workouts, meals, waterEntries, sleepEntries } = useApp();
+  const { user, setUser, workouts, meals, waterEntries, sleepEntries, coachProfile } = useApp();
+  const demoUsers = buildDemoUsers(coachProfile);
 
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
@@ -71,7 +76,7 @@ export default function ProfileScreen() {
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Choose a demo account to get started
           </Text>
-          {DEMO_USERS.map((u) => (
+          {demoUsers.map((u) => (
             <TouchableOpacity
               key={u.id}
               onPress={() => {
@@ -283,7 +288,7 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
             Switch Account
           </Text>
-          {DEMO_USERS.filter((u) => u.id !== user.id).map((u) => (
+          {demoUsers.filter((u) => u.id !== user.id).map((u) => (
             <TouchableOpacity
               key={u.id}
               onPress={() => {
@@ -325,14 +330,16 @@ export default function ProfileScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.selectionAsync();
-              Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hello Coach TinaBarks, I need help with CoreHer Fitness."));
+              const phone = coachProfile.phone.replace(/\D/g, "");
+              const msg = encodeURIComponent(`Hello ${coachProfile.name}, I need help with CoreHer Fitness.`);
+              Linking.openURL(`https://wa.me/${phone}?text=${msg}`);
             }}
             style={[styles.switchCard, { backgroundColor: colors.card }]}
           >
             <Feather name="message-circle" size={18} color="#25D366" />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.switchName, { color: colors.foreground }]}>Chat with Coach TinaBarks</Text>
-              <Text style={[styles.switchRole, { color: colors.mutedForeground }]}>WhatsApp · +256702568383</Text>
+              <Text style={[styles.switchName, { color: colors.foreground }]}>Chat with {coachProfile.name}</Text>
+              <Text style={[styles.switchRole, { color: colors.mutedForeground }]}>WhatsApp · {coachProfile.phone}</Text>
             </View>
             <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
