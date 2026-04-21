@@ -29,7 +29,6 @@ export default function ForgotPasswordScreen() {
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [resetCode, setResetCode] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -80,7 +79,6 @@ export default function ForgotPasswordScreen() {
       if (!res.ok) {
         setError(data.error ?? "Something went wrong. Please try again.");
       } else {
-        setResetCode(data.code ?? null);
         setStep("verify");
       }
     } catch {
@@ -274,18 +272,11 @@ export default function ForgotPasswordScreen() {
 
           {step === "verify" && (
             <>
-              <Text style={styles.title}>Enter reset code</Text>
+              <Text style={styles.title}>Check your email</Text>
               <Text style={styles.subtitle}>
-                A 6-digit code has been generated for <Text style={styles.emailHighlight}>{email}</Text>. Enter it below to continue.
+                We sent a 6-digit code to{" "}
+                <Text style={styles.emailHighlight}>{email}</Text>. Enter it below — it expires in 15 minutes.
               </Text>
-
-              {resetCode ? (
-                <View style={styles.codeBox}>
-                  <Text style={styles.codeLabel}>Your Reset Code</Text>
-                  <Text style={styles.codeText}>{resetCode}</Text>
-                  <Text style={styles.codeExpiry}>Expires in 15 minutes</Text>
-                </View>
-              ) : null}
 
               <View style={styles.field}>
                 <Text style={styles.label}>6-Digit Code</Text>
@@ -537,33 +528,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   eyeBtn: { padding: 4 },
-  codeBox: {
-    backgroundColor: "#F3E8FF",
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  codeLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    color: "#6A0DAD",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  codeText: {
-    fontSize: 36,
-    fontFamily: "Inter_700Bold",
-    color: "#2D0B4E",
-    letterSpacing: 10,
-    marginBottom: 6,
-  },
-  codeExpiry: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: "#9D4EDD",
-  },
   button: {
     borderRadius: 14,
     overflow: "hidden",

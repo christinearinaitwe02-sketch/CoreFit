@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db, usersTable, coachesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { sendPasswordResetEmail } from "../lib/email.js";
 
 const router = Router();
 
@@ -156,7 +157,14 @@ router.post("/auth/forgot-password", async (req, res) => {
       .set({ resetToken: codeHash, resetTokenExpiry: expiry })
       .where(eq(usersTable.email, normalEmail));
 
-    return res.json({ success: true, code });
+    try {
+      await sendPasswordResetEmail(normalEmail, rows[0].name, code);
+    } catch (emailErr) {
+      console.error("forgot-password email send error", emailErr);
+      return res.status(500).json({ error: "Failed to send reset email. Please try again." });
+    }
+
+    return res.json({ success: true });
   } catch (err) {
     console.error("forgot-password error", err);
     return res.status(500).json({ error: "Server error. Please try again." });
