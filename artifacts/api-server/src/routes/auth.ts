@@ -163,6 +163,47 @@ router.post("/auth/forgot-password", async (req, res) => {
   }
 });
 
+router.post("/auth/verify-reset-code", async (req, res) => {
+  try {
+    const { email, code } = req.body as { email?: string; code?: string };
+
+    if (!email?.trim() || !code?.trim()) {
+      return res.status(400).json({ error: "Email and code are required." });
+    }
+
+    const normalEmail = email.trim().toLowerCase();
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, normalEmail))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Account not found." });
+    }
+
+    const user = rows[0];
+
+    if (!user.resetToken || !user.resetTokenExpiry) {
+      return res.status(400).json({ error: "No reset code found. Please request a new one." });
+    }
+
+    if (new Date(user.resetTokenExpiry) < new Date()) {
+      return res.status(400).json({ error: "Reset code has expired. Please request a new one." });
+    }
+
+    const codeMatch = await bcrypt.compare(code.trim(), user.resetToken);
+    if (!codeMatch) {
+      return res.status(400).json({ error: "Invalid reset code. Please check and try again." });
+    }
+
+    return res.json({ valid: true });
+  } catch (err) {
+    console.error("verify-reset-code error", err);
+    return res.status(500).json({ error: "Server error. Please try again." });
+  }
+});
+
 router.post("/auth/reset-password", async (req, res) => {
   try {
     const { email, code, newPassword } = req.body as {
