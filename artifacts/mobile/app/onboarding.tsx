@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -70,7 +71,11 @@ export default function OnboardingScreen() {
           style={styles.hero}
         >
           <View style={styles.heroIconWrap}>
-            <Feather name="heart" size={28} color="#fff" />
+            <Image
+              source={require("../assets/images/logo-mark.png")}
+              style={styles.heroLogo}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.brand}>CoreHer Fitness</Text>
           <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
@@ -167,14 +172,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   heroIconWrap: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    width: 84,
+    height: 84,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.95)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
+    marginBottom: 6,
+    padding: 8,
   },
+  heroLogo: { width: "100%", height: "100%" },
   brand: {
     fontSize: 28,
     fontFamily: "Inter_700Bold",

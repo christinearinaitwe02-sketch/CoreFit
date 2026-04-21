@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "HIKw2xEv_s8FN3JWaA1jA"
@@ -12,3 +11,45 @@ id = "unwIJw1oKOzCmu4EWIgK9"
 uri = "file://artifacts/mobile/assets/images/splash-bg.png"
 type = "image"
 title = "fittrack pro splash background"
+
+[[generated]]
+id = "APv2tRchU01L1bKvkp0UB"
+uri = "file://attached_assets/generated_images/coreher_app_icon.png"
+type = "image"
+title = "coreher app icon"
+
+[[generated]]
+id = "d6UmjAvVDj6IqLtHoKELi"
+uri = "file://attached_assets/generated_images/coreher_icon_mark.png"
+type = "image"
+title = "coreher icon mark"
+
+[[outputs]]
+id = "_Y8AHZdjTmagHBz3uXGKg"
+uri = "file://attached_assets/generated_images/coreher_app_icon_rounded.png"
+type = "image"
+title = "App Icon (1024×1024, iOS-style rounded)"
+
+[[outputs]]
+id = "gy46ZHUpQ3W8rgKgz7bzt"
+uri = "file://attached_assets/generated_images/coreher_app_icon_1024.png"
+type = "image"
+title = "App Icon (1024×1024, square white)"
+
+[[outputs]]
+id = "x0kZImy5Not4L7mUwC1I1"
+uri = "file://attached_assets/generated_images/coreher_icon_mark.png"
+type = "image"
+title = "Icon Mark Only (transparent background)"
+
+[[outputs]]
+id = "mR2y-7Viqg7H7XZpxsZ-b"
+uri = "file://attached_assets/generated_images/coreher_logo_horizontal.png"
+type = "image"
+title = "Full Logo — Horizontal (transparent background)"
+
+[[outputs]]
+id = "Hw4A_HaW9WfQEzNf9455C"
+uri = "file://attached_assets/generated_images/coreher_logo_stacked.png"
+type = "image"
+title = "Full Logo — Stacked with tagline (transparent background)"
