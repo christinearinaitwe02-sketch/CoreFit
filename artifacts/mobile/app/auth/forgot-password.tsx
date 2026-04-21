@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -14,36 +14,99 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
-import { useApp } from "@/context/AppContext";
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { login } = useApp();
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
+
+export default function ForgotPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      setError("Please enter your email and password.");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resetCode, setResetCode] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      setError("Please enter your email address.");
       return;
     }
     setError(null);
     setLoading(true);
-    const result = await login(email.trim(), password);
-    setLoading(false);
-    if (!result.success) {
-      setError(result.error ?? "Login failed.");
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.");
+      } else {
+        setResetCode(data.code ?? null);
+      }
+    } catch {
+      setError("Network error. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (resetCode) {
+    return (
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <LinearGradient
+          colors={["#2D0B4E", "#4A0876", "#6A0DAD"]}
+          style={[styles.header, { paddingTop: insets.top + 32 }]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Text style={styles.logo}>CoreHer</Text>
+          <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
+        </LinearGradient>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <View style={[styles.card, { marginTop: -24 }]}>
+            <Text style={styles.title}>Check your code</Text>
+            <Text style={styles.subtitle}>
+              Use the 6-digit code below to reset your password. It expires in 15 minutes.
+            </Text>
+
+            <View style={styles.codeBox}>
+              <Text style={styles.codeLabel}>Your Reset Code</Text>
+              <Text style={styles.codeText}>{resetCode}</Text>
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+              onPress={() =>
+                router.replace({
+                  pathname: "/auth/reset-password",
+                  params: { email: email.trim().toLowerCase() },
+                })
+              }
+            >
+              <LinearGradient
+                colors={["#6A0DAD", "#FF7F7F"]}
+                style={styles.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.buttonText}>Enter Reset Code</Text>
+              </LinearGradient>
+            </Pressable>
+
+            <Pressable onPress={() => router.replace("/auth/login")} style={styles.backLink}>
+              <Text style={styles.backLinkText}>Back to Sign In</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <LinearGradient
         colors={["#2D0B4E", "#4A0876", "#6A0DAD"]}
         style={[styles.header, { paddingTop: insets.top + 32 }]}
@@ -54,14 +117,12 @@ export default function LoginScreen() {
         <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
       </LinearGradient>
 
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={[styles.card, { marginTop: -24 }]}>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+          <Text style={styles.title}>Reset password</Text>
+          <Text style={styles.subtitle}>
+            Enter your account email and we&apos;ll send you a reset code.
+          </Text>
 
           {error ? (
             <View style={styles.errorBox}>
@@ -80,29 +141,14 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="email"
-              returnKeyType="next"
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Your password"
-              placeholderTextColor={colors.light.mutedForeground}
-              secureTextEntry
-              autoComplete="current-password"
               returnKeyType="done"
-              onSubmitEditing={handleLogin}
+              onSubmitEditing={handleSubmit}
             />
           </View>
 
           <Pressable
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-            onPress={handleLogin}
+            onPress={handleSubmit}
             disabled={loading}
           >
             <LinearGradient
@@ -114,26 +160,14 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
+                <Text style={styles.buttonText}>Send Reset Code</Text>
               )}
             </LinearGradient>
           </Pressable>
 
-          <Pressable
-            onPress={() => router.push("/auth/forgot-password")}
-            style={styles.forgotLink}
-          >
-            <Text style={styles.forgotLinkText}>Forgot Password?</Text>
+          <Pressable onPress={() => router.replace("/auth/login")} style={styles.backLink}>
+            <Text style={styles.backLinkText}>Back to Sign In</Text>
           </Pressable>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don&apos;t have an account?</Text>
-            <Link href="/auth/signup" asChild>
-              <Pressable>
-                <Text style={styles.footerLink}> Create one</Text>
-              </Pressable>
-            </Link>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -187,6 +221,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: colors.light.mutedForeground,
     marginBottom: 24,
+    lineHeight: 20,
   },
   errorBox: {
     backgroundColor: "#FEE2E2",
@@ -200,9 +235,7 @@ const styles = StyleSheet.create({
     color: "#DC2626",
     textAlign: "center",
   },
-  field: {
-    marginBottom: 16,
-  },
+  field: { marginBottom: 16 },
   label: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
@@ -224,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   buttonPressed: { opacity: 0.85 },
   buttonGradient: {
@@ -237,28 +270,31 @@ const styles = StyleSheet.create({
     color: "#fff",
     letterSpacing: 0.3,
   },
-  forgotLink: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  forgotLinkText: {
+  backLink: { alignItems: "center" },
+  backLinkText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: colors.light.primary,
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
+  codeBox: {
+    backgroundColor: "#F3E8FF",
+    borderRadius: 16,
+    padding: 20,
     alignItems: "center",
+    marginBottom: 24,
   },
-  footerText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    color: colors.light.mutedForeground,
-  },
-  footerLink: {
-    fontSize: 14,
+  codeLabel: {
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    color: colors.light.primary,
+    color: "#6A0DAD",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  codeText: {
+    fontSize: 36,
+    fontFamily: "Inter_700Bold",
+    color: "#2D0B4E",
+    letterSpacing: 8,
   },
 });

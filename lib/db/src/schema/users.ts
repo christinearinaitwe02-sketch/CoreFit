@@ -9,6 +9,8 @@ export const usersTable = pgTable("users", {
   isPremium: boolean("is_premium").notNull().default(false),
   paymentStatus: text("payment_status").notNull().default("none"),
   createdAt: text("created_at").notNull(),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: text("reset_token_expiry"),
 });
 
 export type AppUser = typeof usersTable.$inferSelect;
