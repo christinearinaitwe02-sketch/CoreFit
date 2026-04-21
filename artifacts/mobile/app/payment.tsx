@@ -44,7 +44,7 @@ const DIAL_STEPS = [
   {
     icon: "dollar-sign",
     label: "Enter Amount",
-    detail: "Type the amount you want to pay",
+    detail: "UGX 75,000",
     color: "#22C55E",
   },
   {
@@ -83,7 +83,7 @@ export default function PaymentScreen() {
   const [step, setStep] = useState<Step>("instructions");
   const [fullName, setFullName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("75000");
   const [transactionId, setTransactionId] = useState("");
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(COUNTDOWN_SECS);
@@ -376,14 +376,16 @@ export default function PaymentScreen() {
                           </Text>
                         )}
                         {isActive && i === 2 && (
-                          <View
-                            style={[
-                              styles.codePill,
-                              { backgroundColor: "#FF660018" },
-                            ]}
-                          >
+                          <View style={[styles.codePill, { backgroundColor: "#FF660018" }]}>
                             <Text style={[styles.codeText, { color: "#FF6600" }]}>
                               7071895
+                            </Text>
+                          </View>
+                        )}
+                        {isActive && i === 3 && (
+                          <View style={[styles.codePill, { backgroundColor: "#22C55E18" }]}>
+                            <Text style={[styles.codeText, { color: "#22C55E" }]}>
+                              UGX 75,000
                             </Text>
                           </View>
                         )}
@@ -467,12 +469,17 @@ export default function PaymentScreen() {
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Amount Paid (UGX)</Text>
+                  <View style={styles.amountLabelRow}>
+                    <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Amount Paid</Text>
+                    <View style={styles.amountBadge}>
+                      <Text style={styles.amountBadgeText}>UGX 75,000</Text>
+                    </View>
+                  </View>
                   <TextInput
                     style={[styles.input, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
                     value={amount}
                     onChangeText={setAmount}
-                    placeholder="e.g. 50000"
+                    placeholder="75000"
                     placeholderTextColor={colors.mutedForeground}
                     keyboardType="numeric"
                   />
@@ -695,6 +702,14 @@ const styles = StyleSheet.create({
   formTitle: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  amountLabelRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  amountBadge: {
+    backgroundColor: "#22C55E18",
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  amountBadgeText: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#22C55E" },
   input: {
     borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14,
     fontSize: 15, fontFamily: "Inter_400Regular", borderWidth: 1,

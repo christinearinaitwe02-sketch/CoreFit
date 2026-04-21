@@ -267,7 +267,7 @@ export default function ProfileScreen() {
                   <View style={styles.subInfo}>
                     <Text style={[styles.subTitle, { color: "#fff" }]}>Unlock Premium</Text>
                     <Text style={[styles.subDesc, { color: "#ffffffbb" }]}>
-                      Full access via Airtel Money · UGX Merchant 7071895
+                      UGX 75,000 · Airtel Money · Merchant 7071895
                     </Text>
                   </View>
                   <Feather name="arrow-right" size={18} color="#fff" />

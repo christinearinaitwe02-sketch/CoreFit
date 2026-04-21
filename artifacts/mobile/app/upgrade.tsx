@@ -101,6 +101,13 @@ export default function UpgradeScreen() {
                 <Text style={[styles.merchantCode, { color: "#FF6600" }]}>Merchant Code: 7071895</Text>
               </View>
             </View>
+            <View style={styles.priceDivider} />
+            <View style={styles.priceRow}>
+              <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>One-time fee</Text>
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceAmount}>UGX 75,000</Text>
+              </View>
+            </View>
           </View>
 
           {isApproved ? (
@@ -209,6 +216,16 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   merchantRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  priceDivider: { height: 1, backgroundColor: "#FF660020", marginVertical: 10 },
+  priceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  priceLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  priceBadge: {
+    backgroundColor: "#22C55E",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  priceAmount: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff" },
   airtelDot: {
     width: 40,
     height: 40,
