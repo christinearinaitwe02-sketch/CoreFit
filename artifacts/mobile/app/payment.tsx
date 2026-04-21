@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Linking,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -181,14 +182,22 @@ export default function PaymentScreen() {
         >
           {/* ── Header ── */}
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() =>
-                step === "instructions" ? router.back() : setStep("instructions")
-              }
-              style={styles.backBtn}
+            <Pressable
+              onPress={() => {
+                if (step === "instructions") {
+                  router.canGoBack() ? router.back() : router.replace("/(tabs)" as any);
+                } else {
+                  setStep("instructions");
+                }
+              }}
+              style={({ pressed }) => [
+                styles.backBtn,
+                pressed && styles.backBtnPressed,
+              ]}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Feather name="arrow-left" size={22} color={colors.foreground} />
-            </TouchableOpacity>
+            </Pressable>
             <Text style={[styles.headerTitle, { color: colors.foreground }]}>
               {step === "instructions"
                 ? "Upgrade to Premium"
@@ -633,7 +642,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-  backBtn: { padding: 6 },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(0,0,0,0.06)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backBtnPressed: {
+    opacity: 0.6,
+    transform: [{ scale: 0.93 }],
+  },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
 
   heroBanner: {

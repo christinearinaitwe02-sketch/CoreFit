@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
+import BackButton from "@/components/BackButton";
 
 const BENEFITS = [
   { icon: "award",      text: "90-Day Transformation Challenge" },
@@ -88,9 +89,7 @@ export default function UpgradeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={22} color={WHITE} />
-          </TouchableOpacity>
+          <BackButton color={WHITE} style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
           <Text style={styles.headerTitle}>CoreHer Premium</Text>
           <View style={{ width: 36 }} />
         </View>
@@ -241,7 +240,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 28,
   },
-  backBtn: { padding: 6 },
   headerTitle: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",

@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
+import BackButton from "@/components/BackButton";
 import { PremiumGateModal } from "@/components/PremiumGateModal";
 
 const AVATAR_COLORS = [
@@ -93,12 +94,7 @@ export default function ClientDetailScreen() {
           { paddingTop: topPad + 8, backgroundColor: colors.background },
         ]}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[styles.backBtn, { backgroundColor: colors.muted }]}
-        >
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
-        </TouchableOpacity>
+        <BackButton color={colors.foreground} fallback="/(tabs)/coach" />
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>
           Client Profile
         </Text>
@@ -312,13 +308,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingBottom: 12,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
   },
   headerTitle: { fontSize: 17, fontFamily: "Inter_600SemiBold" },
   profileCard: {

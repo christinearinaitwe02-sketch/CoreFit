@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import BackButton from "@/components/BackButton";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
 
@@ -81,9 +82,7 @@ export default function ChangePasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={22} color={colors.foreground} />
-          </TouchableOpacity>
+          <BackButton color={colors.foreground} />
           <Text style={[styles.title, { color: colors.foreground }]}>Change Password</Text>
         </View>
 
@@ -180,7 +179,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 6,
   },
-  backBtn: { padding: 4 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold" },
   subtitle: {
     fontSize: 14,

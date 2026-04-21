@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import BackButton from "@/components/BackButton";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
 
@@ -95,9 +96,7 @@ export default function DeleteAccountScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={22} color={colors.foreground} />
-          </TouchableOpacity>
+          <BackButton color={colors.foreground} />
           <Text style={[styles.title, { color: colors.foreground }]}>Delete Account</Text>
         </View>
 
@@ -229,7 +228,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 8,
   },
-  backBtn: { padding: 4 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold" },
   warningBox: {
     margin: 20,

@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import BackButton from "@/components/BackButton";
 import { PremiumGate } from "@/components/PremiumGate";
 
 const FAQS = [
@@ -67,9 +68,7 @@ export default function SupportScreen() {
       {/* Header — always accessible so users can navigate back */}
       <View style={{ paddingTop: topPad + 8 }}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={22} color={colors.foreground} />
-          </TouchableOpacity>
+          <BackButton color={colors.foreground} />
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>Coach Support</Text>
           <View style={{ width: 36 }} />
         </View>
@@ -253,7 +252,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-  backBtn: { padding: 6 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
 
   hero: {
