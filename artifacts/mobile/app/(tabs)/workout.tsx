@@ -23,6 +23,8 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 const WORKOUT_TYPES: WorkoutType[] = [
+  "walking",
+  "jogging",
   "cardio",
   "strength",
   "hiit",
@@ -32,12 +34,14 @@ const WORKOUT_TYPES: WorkoutType[] = [
 ];
 
 const CALORIE_RATES: Record<WorkoutType, number> = {
-  cardio: 10,
+  walking:  3.3,
+  jogging:  5.8,
+  cardio:   6.7,
   strength: 6,
-  hiit: 11,
-  yoga: 3,
-  cycling: 8,
-  other: 6,
+  hiit:     11,
+  yoga:     3,
+  cycling:  8,
+  other:    6,
 };
 
 function formatTime(seconds: number) {
@@ -53,7 +57,7 @@ export default function WorkoutScreen() {
   const insets = useSafeAreaInsets();
   const { workouts, addWorkout, removeWorkout } = useApp();
 
-  const [selectedType, setSelectedType] = useState<WorkoutType>("cardio");
+  const [selectedType, setSelectedType] = useState<WorkoutType>("walking");
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);

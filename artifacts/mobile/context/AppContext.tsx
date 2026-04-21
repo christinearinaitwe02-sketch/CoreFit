@@ -26,7 +26,7 @@ export interface User {
 export interface WorkoutEntry {
   id: string;
   date: string;
-  type: "cardio" | "strength" | "hiit" | "yoga" | "cycling" | "other";
+  type: "cardio" | "strength" | "hiit" | "yoga" | "cycling" | "other" | "walking" | "jogging";
   duration: number;
   calories: number;
   notes?: string;
@@ -168,8 +168,8 @@ const daysAgo = (n: number) => {
 const SEED_WORKOUTS: WorkoutEntry[] = [
   { id: "w1", date: today(), type: "hiit", duration: 30, calories: 320, notes: "Morning HIIT circuit" },
   { id: "w2", date: daysAgo(1), type: "strength", duration: 45, calories: 280 },
-  { id: "w3", date: daysAgo(2), type: "cardio", duration: 40, calories: 350, notes: "5k run" },
-  { id: "w4", date: daysAgo(3), type: "yoga", duration: 60, calories: 180 },
+  { id: "w3", date: daysAgo(2), type: "jogging", duration: 35, calories: 339, notes: "Evening jog" },
+  { id: "w4", date: daysAgo(3), type: "walking", duration: 45, calories: 149, notes: "Morning walk" },
   { id: "w5", date: daysAgo(5), type: "cycling", duration: 50, calories: 400 },
 ];
 
