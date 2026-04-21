@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -19,8 +20,15 @@ import {
   getWorkoutMeta,
   WorkoutType,
 } from "@/components/WorkoutTypeChip";
+import { HIIT_WORKOUTS } from "@/data/hiitWorkouts";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+
+const LEVEL_COLOR: Record<string, string> = {
+  Beginner:     "#10B981",
+  Intermediate: "#FF8C42",
+  Advanced:     "#FF6B6B",
+};
 
 const WORKOUT_TYPES: WorkoutType[] = [
   "walking",
@@ -55,6 +63,7 @@ function formatTime(seconds: number) {
 export default function WorkoutScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { workouts, addWorkout, removeWorkout } = useApp();
 
   const [selectedType, setSelectedType] = useState<WorkoutType>("walking");
@@ -202,6 +211,84 @@ export default function WorkoutScreen() {
                 }}
               />
             ))}
+          </ScrollView>
+        </View>
+
+        {/* Guided HIIT Workouts */}
+        <View style={styles.guidedSection}>
+          <View style={styles.guidedHeader}>
+            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>
+              Guided HIIT Workouts
+            </Text>
+            <View style={[styles.newBadge, { backgroundColor: "#FF7F7F22" }]}>
+              <Text style={styles.newBadgeText}>Video</Text>
+            </View>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.guidedCards}
+          >
+            {HIIT_WORKOUTS.map((w) => {
+              const lc = LEVEL_COLOR[w.level] ?? "#9B5DE5";
+              return (
+                <TouchableOpacity
+                  key={w.id}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push(`/workout-video?id=${w.id}`);
+                  }}
+                  style={[
+                    styles.guidedCard,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
+                  {/* Thumbnail placeholder with play icon */}
+                  <View style={styles.thumbnail}>
+                    <View
+                      style={[
+                        styles.thumbGradient,
+                        { backgroundColor: "#6A0DAD" },
+                      ]}
+                    >
+                      <View style={styles.playCircle}>
+                        <Feather name="play" size={20} color="#6A0DAD" />
+                      </View>
+                    </View>
+                  </View>
+                  {/* Info */}
+                  <View style={styles.cardBody}>
+                    <Text
+                      style={[styles.cardTitle, { color: colors.foreground }]}
+                      numberOfLines={2}
+                    >
+                      {w.title}
+                    </Text>
+                    <View style={styles.cardMeta}>
+                      <Feather
+                        name="clock"
+                        size={12}
+                        color={colors.mutedForeground}
+                      />
+                      <Text
+                        style={[
+                          styles.cardMetaText,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        {w.duration}
+                      </Text>
+                    </View>
+                    <View style={[styles.levelPill, { backgroundColor: lc + "20" }]}>
+                      <Text style={[styles.levelPillText, { color: lc }]}>
+                        {w.level}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -384,5 +471,84 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+  },
+  guidedSection: {
+    marginBottom: 24,
+  },
+  guidedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  newBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 100,
+  },
+  newBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: "#FF7F7F",
+  },
+  guidedCards: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  guidedCard: {
+    width: 170,
+    borderRadius: 18,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  thumbnail: {
+    height: 100,
+    backgroundColor: "#6A0DAD22",
+  },
+  thumbGradient: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardBody: {
+    padding: 12,
+    gap: 6,
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    lineHeight: 18,
+  },
+  cardMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  cardMetaText: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+  },
+  levelPill: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 100,
+  },
+  levelPillText: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
   },
 });
