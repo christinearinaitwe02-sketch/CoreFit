@@ -98,6 +98,13 @@ interface AppContextValue {
   weightEntries: WeightEntry[];
   addWeightEntry: (kg: number) => void;
 
+  hasOnboarded: boolean;
+  completeOnboarding: () => void;
+
+  challengeStartDate: string | null;
+  startChallenge: () => void;
+  getChallengeDay: () => number;
+
   clients: Client[];
 
   getTodaySummary: () => DaySummary;
@@ -206,6 +213,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [waterEntries, setWaterEntries] = useState<WaterEntry[]>(SEED_WATER);
   const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>(SEED_SLEEP);
   const [weightEntries, setWeightEntries] = useState<WeightEntry[]>(SEED_WEIGHTS);
+  const [hasOnboarded, setHasOnboarded] = useState(false);
+  const [challengeStartDate, setChallengeStartDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -226,6 +235,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (savedSleep) setSleepEntries(JSON.parse(savedSleep));
       const savedWeight = await AsyncStorage.getItem("weightEntries");
       if (savedWeight) setWeightEntries(JSON.parse(savedWeight));
+      const savedOnboarded = await AsyncStorage.getItem("hasOnboarded");
+      if (savedOnboarded === "true") setHasOnboarded(true);
+      const savedChallenge = await AsyncStorage.getItem("challengeStartDate");
+      if (savedChallenge) setChallengeStartDate(savedChallenge);
     } catch (e) {
       // ignore
     } finally {
@@ -330,6 +343,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [weightEntries]
   );
 
+  const completeOnboarding = useCallback(async () => {
+    setHasOnboarded(true);
+    await AsyncStorage.setItem("hasOnboarded", "true");
+  }, []);
+
+  const startChallenge = useCallback(async () => {
+    const t = today();
+    setChallengeStartDate(t);
+    await AsyncStorage.setItem("challengeStartDate", t);
+  }, []);
+
+  const getChallengeDay = useCallback(() => {
+    if (!challengeStartDate) return 0;
+    const start = new Date(challengeStartDate + "T00:00:00").getTime();
+    const now = new Date(today() + "T00:00:00").getTime();
+    return Math.min(90, Math.max(1, Math.floor((now - start) / 86400000) + 1));
+  }, [challengeStartDate]);
+
   const getTodaySummary = useCallback((): DaySummary => {
     const t = today();
     const caloriesBurned = workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0);
@@ -359,6 +390,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         waterEntries, addWaterEntry, getTodayWater,
         sleepEntries, addSleepEntry,
         weightEntries, addWeightEntry,
+        hasOnboarded, completeOnboarding,
+        challengeStartDate, startChallenge, getChallengeDay,
         clients: DEMO_CLIENTS,
         getTodaySummary, getWeekSummary,
         isLoading,

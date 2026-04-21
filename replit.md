@@ -1,7 +1,17 @@
-# FitTrack Pro — Replit Project
+# CoreHer Fitness — Replit Project
 
 ## Overview
-A mobile fitness app (Expo React Native) for women fitness clients. Includes a dashboard, workout timer, meal logging, AI calorie estimation, weekly progress charts, weight tracking, and a coach dashboard.
+**CoreHer Fitness** — *Build your core. Transform your confidence.*
+
+A premium mobile fitness platform (Expo React Native) for women aged 25–45 who want to lose belly fat, track their lifestyle, and rebuild confidence. Includes onboarding, a 90-Day Transformation Challenge, dashboard, workout timer, meal logging with AI calorie estimation, weekly progress charts, weight tracking, and a coach dashboard.
+
+## Branding
+- **Primary**: Deep Purple `#6A0DAD`
+- **Accent**: Peach/Coral `#FF7F7F`
+- **Background**: Soft White `#F8F8F8`
+- **Text**: Dark Charcoal `#333333`
+- **Font**: Inter (400/500/600/700)
+- Mobile-first, clean, modern design, no emojis in UI
 
 ## Architecture
 
@@ -19,7 +29,8 @@ A mobile fitness app (Expo React Native) for women fitness clients. Includes a d
 #### Key screens
 | File | Description |
 |------|-------------|
-| `app/(tabs)/index.tsx` | Dashboard with stat rings, goal bars, quick actions, today's workouts/meals |
+| `app/onboarding.tsx` | First-launch onboarding with brand intro, description, features, and Get Started CTA |
+| `app/(tabs)/index.tsx` | Dashboard with stat rings, 90-Day Challenge CTA/progress, goal bars, quick actions, today's workouts/meals |
 | `app/(tabs)/workout.tsx` | Workout timer with exercise library and calorie calculation |
 | `app/(tabs)/log.tsx` | Meals (with AI calorie estimation), water, sleep logging |
 | `app/(tabs)/progress.tsx` | Weekly bar charts (calories/sleep/water), consistency tracker, weight tracker, goals |

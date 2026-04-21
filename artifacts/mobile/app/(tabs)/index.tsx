@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useMemo } from "react";
 import {
+  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -38,8 +40,17 @@ export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, workouts, meals, getTodaySummary } = useApp();
+  const {
+    user,
+    workouts,
+    meals,
+    getTodaySummary,
+    challengeStartDate,
+    startChallenge,
+    getChallengeDay,
+  } = useApp();
   const goals = useGoals();
+  const challengeDay = getChallengeDay();
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
   const today = new Date().toISOString().split("T")[0];
@@ -66,7 +77,7 @@ export default function DashboardScreen() {
               {greeting()}
             </Text>
             <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
-              {user?.name ?? "Athlete"}
+              {user?.name ?? "Beautiful"}
             </Text>
           </View>
           <TouchableOpacity
@@ -144,6 +155,79 @@ export default function DashboardScreen() {
             />
           </View>
         </View>
+
+        {/* ── 90-Day Challenge CTA ── */}
+        {!challengeStartDate ? (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              startChallenge();
+              Alert.alert(
+                "You're in!",
+                "Day 1 of your 90-Day Transformation begins now."
+              );
+            }}
+            style={styles.challengeWrap}
+          >
+            <LinearGradient
+              colors={[colors.gradientStart, colors.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.challengeBtn}
+            >
+              <View style={styles.challengeIcon}>
+                <Feather name="award" size={22} color="#fff" />
+              </View>
+              <View style={styles.challengeText}>
+                <Text style={styles.challengeTitle}>
+                  Start Your 90-Day Journey
+                </Text>
+                <Text style={styles.challengeSub}>
+                  Build your core. Transform your confidence.
+                </Text>
+              </View>
+              <Feather name="arrow-right" size={20} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.challengeProgress, { backgroundColor: colors.card }]}>
+            <View style={styles.challengeProgressTop}>
+              <View
+                style={[
+                  styles.challengeBadge,
+                  { backgroundColor: colors.primaryLight },
+                ]}
+              >
+                <Feather name="award" size={14} color={colors.primary} />
+                <Text
+                  style={[styles.challengeBadgeText, { color: colors.primary }]}
+                >
+                  90-Day Challenge
+                </Text>
+              </View>
+              <Text style={[styles.challengeDay, { color: colors.foreground }]}>
+                Day {challengeDay}
+                <Text
+                  style={[styles.challengeDayTotal, { color: colors.mutedForeground }]}
+                >
+                  {" "}
+                  of 90
+                </Text>
+              </Text>
+            </View>
+            <AnimatedProgressBar
+              progress={challengeDay / 90}
+              color={colors.primary}
+              height={8}
+            />
+            <Text
+              style={[styles.challengeKeepGoing, { color: colors.mutedForeground }]}
+            >
+              {90 - challengeDay} days to transformation. Keep going!
+            </Text>
+          </View>
+        )}
 
         {/* ── Quick Actions ── */}
         <View style={styles.qaGrid}>
@@ -458,4 +542,67 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
   },
+  challengeWrap: {
+    marginBottom: 16,
+    shadowColor: "#6A0DAD",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  challengeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 18,
+    borderRadius: 22,
+  },
+  challengeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  challengeText: { flex: 1, gap: 2 },
+  challengeTitle: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.2,
+  },
+  challengeSub: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  challengeProgress: {
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  challengeProgressTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  challengeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 100,
+  },
+  challengeBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  challengeDay: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  challengeDayTotal: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  challengeKeepGoing: { fontSize: 12, fontFamily: "Inter_400Regular" },
 });
