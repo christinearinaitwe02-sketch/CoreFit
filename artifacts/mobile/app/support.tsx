@@ -118,7 +118,7 @@ export default function SupportScreen() {
               <Feather name="message-circle" size={20} color="#fff" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.whatsappBtnLabel}>Chat on WhatsApp</Text>
-                <Text style={styles.whatsappBtnSub}>+{WHATSAPP_NUMBER}</Text>
+                <Text style={styles.whatsappBtnSub}>+{whatsappNumber}</Text>
               </View>
               <Feather name="arrow-right" size={18} color="#fff" />
             </LinearGradient>
@@ -228,7 +228,7 @@ export default function SupportScreen() {
         >
           <Feather name="phone" size={16} color="#25D366" />
           <Text style={[styles.numberText, { color: colors.foreground }]}>
-            +{WHATSAPP_NUMBER}
+            +{whatsappNumber}
           </Text>
           <View style={[styles.waBadge, { backgroundColor: "#25D36618" }]}>
             <Text style={[styles.waBadgeText, { color: "#25D366" }]}>WhatsApp</Text>

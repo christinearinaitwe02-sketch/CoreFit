@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
+  Alert,
   Platform,
   ScrollView,
   StyleSheet,
