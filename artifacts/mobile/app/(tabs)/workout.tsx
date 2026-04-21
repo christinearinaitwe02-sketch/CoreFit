@@ -20,7 +20,14 @@ import {
   getWorkoutMeta,
   WorkoutType,
 } from "@/components/WorkoutTypeChip";
-import { HIIT_WORKOUTS } from "@/data/hiitWorkouts";
+import {
+  getWorkoutsByCategory,
+  CATEGORY_COLOR,
+  CATEGORY_ICON,
+  CATEGORY_LABEL,
+  GUIDED_CATEGORIES,
+  GuidedWorkoutCategory,
+} from "@/data/hiitWorkouts";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -214,83 +221,76 @@ export default function WorkoutScreen() {
           </ScrollView>
         </View>
 
-        {/* Guided HIIT Workouts */}
-        <View style={styles.guidedSection}>
-          <View style={styles.guidedHeader}>
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>
-              Guided HIIT Workouts
-            </Text>
-            <View style={[styles.newBadge, { backgroundColor: "#FF7F7F22" }]}>
-              <Text style={styles.newBadgeText}>Video</Text>
-            </View>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.guidedCards}
-          >
-            {HIIT_WORKOUTS.map((w) => {
-              const lc = LEVEL_COLOR[w.level] ?? "#9B5DE5";
-              return (
-                <TouchableOpacity
-                  key={w.id}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push(`/workout-video?id=${w.id}`);
-                  }}
-                  style={[
-                    styles.guidedCard,
-                    { backgroundColor: colors.card },
-                  ]}
-                >
-                  {/* Thumbnail placeholder with play icon */}
-                  <View style={styles.thumbnail}>
-                    <View
-                      style={[
-                        styles.thumbGradient,
-                        { backgroundColor: "#6A0DAD" },
-                      ]}
+        {/* Guided Videos — shown when the selected type has video content */}
+        {GUIDED_CATEGORIES.includes(selectedType as GuidedWorkoutCategory) && (() => {
+          const cat = selectedType as GuidedWorkoutCategory;
+          const guided = getWorkoutsByCategory(cat);
+          const catColor = CATEGORY_COLOR[cat];
+          const catLabel = CATEGORY_LABEL[cat];
+          if (guided.length === 0) return null;
+          return (
+            <View style={styles.guidedSection}>
+              <View style={styles.guidedHeader}>
+                <Text style={[styles.sectionLabel, { color: colors.foreground }]}>
+                  Guided {catLabel} Videos
+                </Text>
+                <View style={[styles.newBadge, { backgroundColor: catColor + "22" }]}>
+                  <Feather name="play-circle" size={11} color={catColor} />
+                  <Text style={[styles.newBadgeText, { color: catColor }]}>
+                    Video
+                  </Text>
+                </View>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.guidedCards}
+              >
+                {guided.map((w) => {
+                  const lc = LEVEL_COLOR[w.level] ?? "#9B5DE5";
+                  return (
+                    <TouchableOpacity
+                      key={w.id}
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push(`/workout-video?id=${w.id}`);
+                      }}
+                      style={[styles.guidedCard, { backgroundColor: colors.card }]}
                     >
-                      <View style={styles.playCircle}>
-                        <Feather name="play" size={20} color="#6A0DAD" />
+                      <View style={[styles.thumbnail, { backgroundColor: catColor + "22" }]}>
+                        <View style={[styles.thumbGradient, { backgroundColor: catColor }]}>
+                          <View style={styles.playCircle}>
+                            <Feather name="play" size={20} color={catColor} />
+                          </View>
+                        </View>
                       </View>
-                    </View>
-                  </View>
-                  {/* Info */}
-                  <View style={styles.cardBody}>
-                    <Text
-                      style={[styles.cardTitle, { color: colors.foreground }]}
-                      numberOfLines={2}
-                    >
-                      {w.title}
-                    </Text>
-                    <View style={styles.cardMeta}>
-                      <Feather
-                        name="clock"
-                        size={12}
-                        color={colors.mutedForeground}
-                      />
-                      <Text
-                        style={[
-                          styles.cardMetaText,
-                          { color: colors.mutedForeground },
-                        ]}
-                      >
-                        {w.duration}
-                      </Text>
-                    </View>
-                    <View style={[styles.levelPill, { backgroundColor: lc + "20" }]}>
-                      <Text style={[styles.levelPillText, { color: lc }]}>
-                        {w.level}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+                      <View style={styles.cardBody}>
+                        <Text
+                          style={[styles.cardTitle, { color: colors.foreground }]}
+                          numberOfLines={2}
+                        >
+                          {w.title}
+                        </Text>
+                        <View style={styles.cardMeta}>
+                          <Feather name="clock" size={12} color={colors.mutedForeground} />
+                          <Text style={[styles.cardMetaText, { color: colors.mutedForeground }]}>
+                            {w.duration}
+                          </Text>
+                        </View>
+                        <View style={[styles.levelPill, { backgroundColor: lc + "20" }]}>
+                          <Text style={[styles.levelPillText, { color: lc }]}>
+                            {w.level}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          );
+        })()}
 
         {/* History */}
         <SectionHeader title="History" />
@@ -483,6 +483,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   newBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 100,
@@ -490,7 +493,6 @@ const styles = StyleSheet.create({
   newBadgeText: {
     fontSize: 11,
     fontFamily: "Inter_700Bold",
-    color: "#FF7F7F",
   },
   guidedCards: {
     paddingHorizontal: 20,

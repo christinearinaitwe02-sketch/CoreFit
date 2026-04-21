@@ -1,18 +1,28 @@
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
-import React from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
 import { YoutubePlayer } from "@/components/YoutubePlayer";
-import { HIIT_WORKOUTS } from "@/data/hiitWorkouts";
+import {
+  findWorkoutById,
+  ALL_GUIDED_WORKOUTS,
+  CATEGORY_COLOR,
+  CATEGORY_ICON,
+  CATEGORY_LABEL,
+} from "@/data/hiitWorkouts";
+import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -24,20 +34,45 @@ const LEVEL_COLOR: Record<string, string> = {
 export default function WorkoutVideoScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { addWorkout } = useApp();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const workout = HIIT_WORKOUTS.find((w) => w.id === id) ?? HIIT_WORKOUTS[0];
-  const levelColor = LEVEL_COLOR[workout.level] ?? "#9B5DE5";
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const workout = findWorkoutById(id ?? "") ?? ALL_GUIDED_WORKOUTS[0];
+  const levelColor  = LEVEL_COLOR[workout.level] ?? "#9B5DE5";
+  const catColor    = CATEGORY_COLOR[workout.category] ?? "#6A0DAD";
+  const catIcon     = CATEGORY_ICON[workout.category] ?? "activity";
+  const catLabel    = CATEGORY_LABEL[workout.category] ?? "Workout";
+  const topPad      = Platform.OS === "web" ? 67 : insets.top;
+
+  const [completed, setCompleted] = useState(false);
+  const [scale]    = useState(new Animated.Value(1));
+
+  function handleComplete() {
+    if (completed) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 0.93, duration: 80, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+    ]).start();
+    const today = new Date().toISOString().split("T")[0];
+    addWorkout({
+      date: today,
+      type: workout.category as any,
+      duration: workout.durationMinutes,
+      calories: workout.estimatedCalories,
+    });
+    setCompleted(true);
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
+      {/* Header + player */}
       <LinearGradient
         colors={["#3D007A", "#6A0DAD"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: topPad + 8 }]}
+        style={{ paddingTop: topPad + 8 }}
       >
         <View style={styles.headerRow}>
           <BackButton color="#fff" fallback="/(tabs)/workout" />
@@ -47,49 +82,29 @@ export default function WorkoutVideoScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Video Player */}
         <View style={styles.playerWrap}>
           <YoutubePlayer videoUrl={workout.videoUrl} height={210} />
         </View>
       </LinearGradient>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Info card */}
-        <View
-          style={[styles.infoCard, { backgroundColor: colors.card }]}
-        >
-          {/* Title + level */}
-          <View style={styles.titleRow}>
-            <View style={styles.titleBlock}>
-              <Text style={[styles.workoutTitle, { color: colors.foreground }]}>
-                {workout.title}
-              </Text>
-              <View style={styles.badges}>
-                <View
-                  style={[
-                    styles.levelBadge,
-                    { backgroundColor: levelColor + "20" },
-                  ]}
-                >
-                  <Text style={[styles.levelText, { color: levelColor }]}>
-                    {workout.level}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.levelBadge,
-                    { backgroundColor: "#6A0DAD18" },
-                  ]}
-                >
-                  <Feather name="zap" size={11} color="#6A0DAD" />
-                  <Text style={[styles.levelText, { color: "#6A0DAD" }]}>
-                    HIIT
-                  </Text>
-                </View>
-              </View>
+        {/* Info card sits flush under the video */}
+        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.workoutTitle, { color: colors.foreground }]}>
+            {workout.title}
+          </Text>
+
+          {/* Category + Level badges */}
+          <View style={styles.badges}>
+            <View style={[styles.badge, { backgroundColor: catColor + "20" }]}>
+              <Feather name={catIcon as any} size={11} color={catColor} />
+              <Text style={[styles.badgeText, { color: catColor }]}>{catLabel}</Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: levelColor + "20" }]}>
+              <Text style={[styles.badgeText, { color: levelColor }]}>{workout.level}</Text>
             </View>
           </View>
 
@@ -104,9 +119,7 @@ export default function WorkoutVideoScreen() {
                 Duration
               </Text>
             </View>
-            <View
-              style={[styles.statDivider, { backgroundColor: colors.border }]}
-            />
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <View style={styles.statItem}>
               <Feather name="flame" size={18} color="#FF7F7F" />
               <Text style={[styles.statValue, { color: colors.foreground }]}>
@@ -116,9 +129,7 @@ export default function WorkoutVideoScreen() {
                 Est. Burn
               </Text>
             </View>
-            <View
-              style={[styles.statDivider, { backgroundColor: colors.border }]}
-            />
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <View style={styles.statItem}>
               <Feather name="bar-chart-2" size={18} color={levelColor} />
               <Text style={[styles.statValue, { color: colors.foreground }]}>
@@ -141,12 +152,7 @@ export default function WorkoutVideoScreen() {
               key={i}
               style={[styles.stepRow, { backgroundColor: colors.card }]}
             >
-              <View
-                style={[
-                  styles.stepNumber,
-                  { backgroundColor: colors.primary + "18" },
-                ]}
-              >
+              <View style={[styles.stepNum, { backgroundColor: colors.primary + "18" }]}>
                 <Text style={[styles.stepNumText, { color: colors.primary }]}>
                   {i + 1}
                 </Text>
@@ -167,20 +173,53 @@ export default function WorkoutVideoScreen() {
         >
           <Feather name="info" size={16} color="#6A0DAD" />
           <Text style={[styles.tipText, { color: colors.foreground }]}>
-            Press play in the video above and follow along. Pause anytime to
-            rest — listen to your body.
+            Press play above and follow along. Pause anytime — listen to your body.
           </Text>
         </View>
       </ScrollView>
+
+      {/* Mark as Complete — floating footer */}
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+            paddingBottom: insets.bottom + 16,
+          },
+        ]}
+      >
+        {completed ? (
+          <View style={[styles.completedRow, { backgroundColor: "#10B98118" }]}>
+            <Feather name="check-circle" size={20} color="#10B981" />
+            <Text style={styles.completedText}>Saved to your workout history!</Text>
+          </View>
+        ) : (
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleComplete}
+              style={styles.completeBtn}
+            >
+              <LinearGradient
+                colors={["#6A0DAD", "#FF7F7F"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.completeBtnGradient}
+              >
+                <Feather name="check-circle" size={18} color="#fff" />
+                <Text style={styles.completeBtnText}>Mark as Complete</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  header: {
-    paddingBottom: 0,
-  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -195,7 +234,6 @@ const styles = StyleSheet.create({
   },
   playerWrap: {
     marginHorizontal: 16,
-    marginBottom: 0,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     overflow: "hidden",
@@ -207,31 +245,25 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
   },
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  titleBlock: { flex: 1 },
   workoutTitle: {
     fontSize: 20,
     fontFamily: "Inter_700Bold",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   badges: {
     flexDirection: "row",
     gap: 8,
+    marginBottom: 16,
   },
-  levelBadge: {
+  badge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 100,
   },
-  levelText: {
+  badgeText: {
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
@@ -277,7 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 8,
   },
-  stepNumber: {
+  stepNum: {
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -298,7 +330,6 @@ const styles = StyleSheet.create({
   },
   tipBox: {
     marginHorizontal: 16,
-    marginBottom: 8,
     flexDirection: "row",
     gap: 10,
     alignItems: "flex-start",
@@ -311,5 +342,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     lineHeight: 20,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  completeBtn: {
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  completeBtnGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  completeBtnText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    letterSpacing: 0.3,
+  },
+  completedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  completedText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: "#10B981",
   },
 });
