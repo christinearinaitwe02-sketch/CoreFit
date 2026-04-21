@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { db, usersTable, coachesTable } from "@workspace/db";
+import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { sendPasswordResetEmail } from "../lib/email.js";
 
@@ -51,13 +51,7 @@ router.post("/auth/register", async (req, res) => {
       return res.status(409).json({ error: "An account with this email already exists." });
     }
 
-    const coaches = await db
-      .select()
-      .from(coachesTable)
-      .where(eq(coachesTable.email, normalEmail))
-      .limit(1);
-
-    const role = coaches.length > 0 ? "coach" : "client";
+    const role = "client";
     const passwordHash = await bcrypt.hash(password, 10);
 
     const [user] = await db
