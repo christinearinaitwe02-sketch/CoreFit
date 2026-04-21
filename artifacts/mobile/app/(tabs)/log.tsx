@@ -29,7 +29,8 @@ const MEAL_CATEGORIES = [
 
 type MealCategory = typeof MEAL_CATEGORIES[number]["key"];
 
-const WATER_GOAL = 8;
+const WATER_GOAL = 2.5;
+const WATER_INCREMENTS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
 const SLEEP_HOURS = [4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10];
 
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
@@ -71,7 +72,7 @@ export default function LogScreen() {
   // Water state
   const today = new Date().toISOString().split("T")[0];
   const todayWater = getTodayWater();
-  const [glasses, setGlasses] = useState(todayWater);
+  const [litres, setLitres] = useState(todayWater);
 
   // Sleep state
   const todaySleep = sleepEntries.find((s) => s.date === today);
@@ -131,8 +132,8 @@ export default function LogScreen() {
 
   const handleSaveWater = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    addWaterEntry(today, glasses);
-    Alert.alert("Saved!", `${glasses} glasses of water logged.`);
+    addWaterEntry(today, litres);
+    Alert.alert("Saved!", `${litres.toFixed(2)}L of water logged.`);
   };
 
   const handleSaveSleep = () => {
@@ -356,43 +357,43 @@ export default function LogScreen() {
 
             {/* Big number */}
             <View style={styles.waterCenter}>
-              <Text style={[styles.waterCount, { color: "#38BDF8" }]}>{glasses}</Text>
+              <Text style={[styles.waterCount, { color: "#38BDF8" }]}>{litres.toFixed(2)}</Text>
               <Text style={[styles.waterUnit, { color: colors.mutedForeground }]}>
-                glasses today
+                litres today
               </Text>
             </View>
 
             {/* Progress bar */}
             <AnimatedProgressBar
-              progress={glasses / WATER_GOAL}
+              progress={litres / WATER_GOAL}
               color="#38BDF8"
               height={10}
               backgroundColor="#E0F7FF"
             />
             <Text style={[styles.waterGoalText, { color: colors.mutedForeground }]}>
-              Goal: {WATER_GOAL} glasses · {glasses >= WATER_GOAL ? "Goal reached!" : `${WATER_GOAL - glasses} more to go`}
+              Goal: {WATER_GOAL}L · {litres >= WATER_GOAL ? "Goal reached!" : `${(WATER_GOAL - litres).toFixed(2)}L more to go`}
             </Text>
 
-            {/* Glass grid */}
+            {/* Litre increment grid */}
             <View style={styles.waterGrid}>
-              {Array.from({ length: WATER_GOAL }, (_, i) => i + 1).map((g) => (
+              {WATER_INCREMENTS.map((v) => (
                 <TouchableOpacity
-                  key={g}
+                  key={v}
                   onPress={() => {
-                    setGlasses(g);
+                    setLitres(v);
                     Haptics.selectionAsync();
                   }}
                   style={[
                     styles.waterGlass,
                     {
-                      backgroundColor: g <= glasses ? "#38BDF8" : "#E0F7FF",
-                      borderColor: g <= glasses ? "#38BDF8" : "#B0E8F8",
+                      backgroundColor: v <= litres ? "#38BDF8" : "#E0F7FF",
+                      borderColor: v <= litres ? "#38BDF8" : "#B0E8F8",
                     },
                   ]}
                 >
-                  <Feather name="droplet" size={22} color={g <= glasses ? "#fff" : "#38BDF8"} />
-                  <Text style={[styles.glassNum, { color: g <= glasses ? "#fff" : "#38BDF8" }]}>
-                    {g}
+                  <Feather name="droplet" size={18} color={v <= litres ? "#fff" : "#38BDF8"} />
+                  <Text style={[styles.glassNum, { color: v <= litres ? "#fff" : "#38BDF8" }]}>
+                    {v.toFixed(2)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -404,15 +405,15 @@ export default function LogScreen() {
                 label="−"
                 variant="ghost"
                 size="sm"
-                onPress={() => setGlasses((g) => Math.max(0, g - 1))}
+                onPress={() => setLitres((l) => Math.max(0, Math.round((l - 0.25) * 100) / 100))}
               />
               <Text style={[styles.waterCountSmall, { color: colors.foreground }]}>
-                {glasses} glasses
+                {litres.toFixed(2)} L
               </Text>
               <PillButton
                 label="+"
                 size="sm"
-                onPress={() => setGlasses((g) => Math.min(20, g + 1))}
+                onPress={() => setLitres((l) => Math.min(5, Math.round((l + 0.25) * 100) / 100))}
               />
             </View>
 

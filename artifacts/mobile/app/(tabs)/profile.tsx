@@ -22,14 +22,14 @@ const DEMO_USERS: User[] = [
     name: "Sofia Martinez",
     email: "sofia@example.com",
     role: "client",
-    goals: { calories: 400, water: 8, sleep: 8, workouts: 5 },
+    goals: { calories: 400, water: 2.5, sleep: 8, workouts: 5 },
   },
   {
     id: "coach1",
     name: "Coach Alex",
     email: "coach@fittrackpro.com",
     role: "coach",
-    goals: { calories: 500, water: 10, sleep: 7, workouts: 6 },
+    goals: { calories: 500, water: 3.0, sleep: 7, workouts: 6 },
   },
 ];
 
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   const stats = [
     { label: "Workouts", value: workouts.length.toString(), icon: "zap", color: colors.primary },
     { label: "Meals", value: meals.length.toString(), icon: "coffee", color: colors.peach },
-    { label: "Avg Water", value: `${(waterEntries.reduce((sum, w) => sum + w.glasses, 0) / Math.max(waterEntries.length, 1)).toFixed(1)}`, icon: "droplet", color: "#38BDF8" },
+    { label: "Avg Water", value: `${(waterEntries.reduce((sum, w) => sum + w.litres, 0) / Math.max(waterEntries.length, 1)).toFixed(2)}L`, icon: "droplet", color: "#38BDF8" },
     { label: "Avg Sleep", value: `${(sleepEntries.reduce((sum, s) => sum + s.hours, 0) / Math.max(sleepEntries.length, 1)).toFixed(1)}h`, icon: "moon", color: "#818CF8" },
   ];
 

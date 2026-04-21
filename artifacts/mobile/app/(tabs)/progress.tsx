@@ -52,7 +52,7 @@ export default function ProgressScreen() {
   }));
   const waterData = weekSummary.map((d) => ({
     label: getDayLabel(d.date),
-    value: d.waterGlasses,
+    value: d.waterLitres,
   }));
 
   const totalCalories = weekSummary.reduce((s, d) => s + d.caloriesBurned, 0);
@@ -91,7 +91,7 @@ export default function ProgressScreen() {
       ? { data: calData, max: 600, color: colors.primary, unit: "kcal" }
       : activeChart === "sleep"
       ? { data: sleepData, max: 12, color: "#818CF8", unit: "h" }
-      : { data: waterData, max: 12, color: "#38BDF8", unit: " glasses" };
+      : { data: waterData, max: 4, color: "#38BDF8", unit: "L" };
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -212,7 +212,7 @@ export default function ProgressScreen() {
               ? "Calories Burned"
               : activeChart === "sleep"
               ? "Sleep Hours"
-              : "Water (glasses)"}{" "}
+              : "Water (L)"}{" "}
             — This Week
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>

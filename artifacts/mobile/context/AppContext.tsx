@@ -44,7 +44,7 @@ export interface MealEntry {
 export interface WaterEntry {
   id: string;
   date: string;
-  glasses: number;
+  litres: number;
 }
 
 export interface SleepEntry {
@@ -72,7 +72,7 @@ export interface DaySummary {
   date: string;
   caloriesBurned: number;
   mealsLogged: number;
-  waterGlasses: number;
+  waterLitres: number;
   sleepHours: number;
 }
 
@@ -89,7 +89,7 @@ interface AppContextValue {
   removeMeal: (id: string) => void;
 
   waterEntries: WaterEntry[];
-  addWaterEntry: (date: string, glasses: number) => void;
+  addWaterEntry: (date: string, litres: number) => void;
   getTodayWater: () => number;
 
   sleepEntries: SleepEntry[];
@@ -115,7 +115,7 @@ interface AppContextValue {
 
 const defaultGoals = {
   calories: 400,
-  water: 8,
+  water: 2.5,
   sleep: 8,
   workouts: 5,
 };
@@ -182,10 +182,10 @@ const SEED_MEALS: MealEntry[] = [
 ];
 
 const SEED_WATER: WaterEntry[] = [
-  { id: "wt1", date: today(), glasses: 5 },
-  { id: "wt2", date: daysAgo(1), glasses: 8 },
-  { id: "wt3", date: daysAgo(2), glasses: 7 },
-  { id: "wt4", date: daysAgo(3), glasses: 6 },
+  { id: "wt1", date: today(), litres: 1.25 },
+  { id: "wt2", date: daysAgo(1), litres: 2.0 },
+  { id: "wt3", date: daysAgo(2), litres: 1.75 },
+  { id: "wt4", date: daysAgo(3), litres: 1.5 },
 ];
 
 const SEED_SLEEP: SleepEntry[] = [
@@ -291,13 +291,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addWaterEntry = useCallback(
-    async (date: string, glasses: number) => {
+    async (date: string, litres: number) => {
       const existing = waterEntries.find((w) => w.date === date);
       let updated: WaterEntry[];
       if (existing) {
-        updated = waterEntries.map((w) => (w.date === date ? { ...w, glasses } : w));
+        updated = waterEntries.map((w) => (w.date === date ? { ...w, litres } : w));
       } else {
-        updated = [{ id: generateId(), date, glasses }, ...waterEntries];
+        updated = [{ id: generateId(), date, litres }, ...waterEntries];
       }
       setWaterEntries(updated);
       await AsyncStorage.setItem("waterEntries", JSON.stringify(updated));
@@ -307,7 +307,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getTodayWater = useCallback(() => {
     const entry = waterEntries.find((w) => w.date === today());
-    return entry?.glasses ?? 0;
+    return entry?.litres ?? 0;
   }, [waterEntries]);
 
   const addSleepEntry = useCallback(
@@ -365,9 +365,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const t = today();
     const caloriesBurned = workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0);
     const mealsLogged = meals.filter((m) => m.date === t).length;
-    const waterGlasses = waterEntries.find((w) => w.date === t)?.glasses ?? 0;
+    const waterLitres = waterEntries.find((w) => w.date === t)?.litres ?? 0;
     const sleepHours = sleepEntries.find((s) => s.date === t)?.hours ?? 0;
-    return { date: t, caloriesBurned, mealsLogged, waterGlasses, sleepHours };
+    return { date: t, caloriesBurned, mealsLogged, waterLitres, sleepHours };
   }, [workouts, meals, waterEntries, sleepEntries]);
 
   const getWeekSummary = useCallback((): DaySummary[] => {
@@ -375,9 +375,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const d = daysAgo(6 - i);
       const caloriesBurned = workouts.filter((w) => w.date === d).reduce((s, w) => s + w.calories, 0);
       const mealsLogged = meals.filter((m) => m.date === d).length;
-      const waterGlasses = waterEntries.find((w) => w.date === d)?.glasses ?? 0;
+      const waterLitres = waterEntries.find((w) => w.date === d)?.litres ?? 0;
       const sleepHours = sleepEntries.find((s) => s.date === d)?.hours ?? 0;
-      return { date: d, caloriesBurned, mealsLogged, waterGlasses, sleepHours };
+      return { date: d, caloriesBurned, mealsLogged, waterLitres, sleepHours };
     });
   }, [workouts, meals, waterEntries, sleepEntries]);
 

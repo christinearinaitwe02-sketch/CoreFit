@@ -115,9 +115,9 @@ export default function DashboardScreen() {
               size={78}
             />
             <StatRing
-              progress={summary.waterGlasses / goals.water}
+              progress={summary.waterLitres / goals.water}
               label="Water"
-              value={`${summary.waterGlasses}`}
+              value={`${summary.waterLitres.toFixed(1)}L`}
               color={colors.secondary}
               size={78}
             />
@@ -148,10 +148,10 @@ export default function DashboardScreen() {
             />
             <GoalBar
               label="Water intake"
-              current={summary.waterGlasses}
+              current={summary.waterLitres}
               goal={goals.water}
               color="#38BDF8"
-              unit=" glasses"
+              unit="L"
             />
           </View>
         </View>
