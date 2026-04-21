@@ -175,7 +175,7 @@ export default function PaymentScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <View style={[styles.root, { backgroundColor: colors.card }]}>
         <ScrollView
           contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}

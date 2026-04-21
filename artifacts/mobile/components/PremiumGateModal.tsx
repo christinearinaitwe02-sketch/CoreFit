@@ -47,7 +47,7 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+            <View style={[styles.sheet, { backgroundColor: colors.card }]}>
               {/* Gradient header */}
               <LinearGradient
                 colors={["#6A0DAD", "#9B5DE5"]}

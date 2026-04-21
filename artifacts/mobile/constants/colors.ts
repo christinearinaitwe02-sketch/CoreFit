@@ -3,7 +3,9 @@ const colors = {
     text: "#333333",
     tint: "#6A0DAD",
 
-    background: "#F8F8F8",
+    background: "transparent",
+    pageGradientTop: "#f3e8ff",
+    pageGradientBottom: "#ffffff",
     foreground: "#333333",
 
     card: "#FFFFFF",
