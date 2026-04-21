@@ -260,42 +260,50 @@ export default function DashboardScreen() {
             </LinearGradient>
           </TouchableOpacity>
         ) : (
-          <View style={[styles.challengeProgress, { backgroundColor: colors.card }]}>
-            <View style={styles.challengeProgressTop}>
-              <View
-                style={[
-                  styles.challengeBadge,
-                  { backgroundColor: colors.primaryLight },
-                ]}
-              >
-                <Feather name="award" size={14} color={colors.primary} />
-                <Text
-                  style={[styles.challengeBadgeText, { color: colors.primary }]}
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => router.push("/challenge")}
+          >
+            <View style={[styles.challengeProgress, { backgroundColor: colors.card }]}>
+              <View style={styles.challengeProgressTop}>
+                <View
+                  style={[
+                    styles.challengeBadge,
+                    { backgroundColor: colors.primaryLight },
+                  ]}
                 >
-                  90-Day Challenge
-                </Text>
+                  <Feather name="award" size={14} color={colors.primary} />
+                  <Text
+                    style={[styles.challengeBadgeText, { color: colors.primary }]}
+                  >
+                    90-Day Challenge
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Text style={[styles.challengeDay, { color: colors.foreground }]}>
+                    Day {challengeDay}
+                    <Text
+                      style={[styles.challengeDayTotal, { color: colors.mutedForeground }]}
+                    >
+                      {" "}
+                      of 90
+                    </Text>
+                  </Text>
+                  <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+                </View>
               </View>
-              <Text style={[styles.challengeDay, { color: colors.foreground }]}>
-                Day {challengeDay}
-                <Text
-                  style={[styles.challengeDayTotal, { color: colors.mutedForeground }]}
-                >
-                  {" "}
-                  of 90
-                </Text>
+              <AnimatedProgressBar
+                progress={challengeDay / 90}
+                color={colors.primary}
+                height={8}
+              />
+              <Text
+                style={[styles.challengeKeepGoing, { color: colors.mutedForeground }]}
+              >
+                {90 - challengeDay} days to transformation. Tap to view your plan.
               </Text>
             </View>
-            <AnimatedProgressBar
-              progress={challengeDay / 90}
-              color={colors.primary}
-              height={8}
-            />
-            <Text
-              style={[styles.challengeKeepGoing, { color: colors.mutedForeground }]}
-            >
-              {90 - challengeDay} days to transformation. Keep going!
-            </Text>
-          </View>
+          </TouchableOpacity>
         )}
 
         {/* ── Quick Actions ── */}

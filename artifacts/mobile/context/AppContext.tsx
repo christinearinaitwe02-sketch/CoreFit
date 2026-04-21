@@ -138,6 +138,9 @@ interface AppContextValue {
   startChallenge: () => void;
   getChallengeDay: () => number;
 
+  completedChallengeDays: number[];
+  markDayComplete: (day: number) => void;
+
   clients: Client[];
 
   getTodaySummary: () => DaySummary;
@@ -249,6 +252,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [weightEntries, setWeightEntries] = useState<WeightEntry[]>(SEED_WEIGHTS);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [challengeStartDate, setChallengeStartDate] = useState<string | null>(null);
+  const [completedChallengeDays, setCompletedChallengeDays] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
 
@@ -283,6 +287,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (savedOnboarded === "true") setHasOnboarded(true);
       const savedChallenge = await AsyncStorage.getItem("challengeStartDate");
       if (savedChallenge) setChallengeStartDate(savedChallenge);
+      const savedCompletedDays = await AsyncStorage.getItem("completedChallengeDays");
+      if (savedCompletedDays) setCompletedChallengeDays(JSON.parse(savedCompletedDays));
     } catch {
       // ignore
     } finally {
@@ -499,6 +505,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem("challengeStartDate", t);
   }, []);
 
+  const markDayComplete = useCallback(
+    async (day: number) => {
+      if (completedChallengeDays.includes(day)) return;
+      const updated = [...completedChallengeDays, day];
+      setCompletedChallengeDays(updated);
+      await AsyncStorage.setItem("completedChallengeDays", JSON.stringify(updated));
+    },
+    [completedChallengeDays]
+  );
+
   const getChallengeDay = useCallback(() => {
     if (!challengeStartDate) return 0;
     const start = new Date(challengeStartDate + "T00:00:00").getTime();
@@ -550,6 +566,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         weightEntries, addWeightEntry,
         hasOnboarded, completeOnboarding,
         challengeStartDate, startChallenge, getChallengeDay,
+        completedChallengeDays, markDayComplete,
         clients: DEMO_CLIENTS,
         getTodaySummary, getWeekSummary,
         isLoading,
