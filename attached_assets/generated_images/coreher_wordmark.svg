@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="340">
+  <defs><style>
+    .c{font-family:'Helvetica Neue','Arial',sans-serif;font-weight:900;font-size:165px;text-anchor:middle;}
+    .f{font-family:'Helvetica Neue','Arial',sans-serif;font-weight:500;font-size:58px;letter-spacing:16px;text-anchor:middle;}
+    .t{font-family:'Helvetica Neue','Arial',sans-serif;font-weight:400;font-style:italic;font-size:34px;text-anchor:middle;}
+  </style></defs>
+  <text x="450" y="185" class="c" fill="#6A0DAD">Core<tspan fill="#FF7F7F">Her</tspan></text>
+  <text x="450" y="270" class="f" fill="#6A0DAD">FITNESS</text>
+  <text x="450" y="328" class="t" fill="#7A6F88">Build your core. Transform your confidence.</text>
+</svg>

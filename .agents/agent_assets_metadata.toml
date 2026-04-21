@@ -42,6 +42,18 @@ uri = "file://attached_assets/generated_images/coreher_abs_v3.png"
 type = "image"
 title = "fit abs icon v3"
 
+[[generated]]
+id = "S2Uvv7Ngdl8TGR6jPAIz_"
+uri = "file://attached_assets/generated_images/coreher_photo_style_v1.png"
+type = "image"
+title = "photo style fit woman icon v1"
+
+[[generated]]
+id = "w1ACOIJZ8HSkaDcG_2db8"
+uri = "file://attached_assets/generated_images/coreher_photo_style_v2.png"
+type = "image"
+title = "photo style fit woman icon v2"
+
 [[outputs]]
 id = "_Y8AHZdjTmagHBz3uXGKg"
 uri = "file://attached_assets/generated_images/coreher_app_icon_rounded.png"
@@ -89,3 +101,45 @@ id = "YA7u3_Jl9kQjTRKcd_5vp"
 uri = "file://attached_assets/generated_images/coreher_abs_icon_v3.png"
 type = "image"
 title = "Option 3 — Full figure, faceless, strong and balanced"
+
+[[outputs]]
+id = "vQ5U_3Zkwek2cQTZ37fl2"
+uri = "file://attached_assets/generated_images/coreher_photo_v1_icon_rounded.png"
+type = "image"
+title = "Style A — App Icon, Full Body (detailed illustration)"
+
+[[outputs]]
+id = "TWz0v_FPMagGf5AAmbsvx"
+uri = "file://attached_assets/generated_images/coreher_photo_v1_logo_stacked.png"
+type = "image"
+title = "Style A — Full Logo Stacked"
+
+[[outputs]]
+id = "zrfmBpVsqXnDmHSsXXE_m"
+uri = "file://attached_assets/generated_images/coreher_photo_v1_logo_horizontal.png"
+type = "image"
+title = "Style A — Full Logo Horizontal"
+
+[[outputs]]
+id = "YZ0hczQ8NkJ6VI3BSZIG3"
+uri = "file://attached_assets/generated_images/coreher_photo_v2_icon_rounded.png"
+type = "image"
+title = "Style B — App Icon, Torso Bold (two-tone graphic)"
+
+[[outputs]]
+id = "iynihFR6XnFUows9ulUV7"
+uri = "file://attached_assets/generated_images/coreher_photo_v2_logo_stacked.png"
+type = "image"
+title = "Style B — Full Logo Stacked"
+
+[[outputs]]
+id = "HrYN7eQ2HbMKuq2gPa2o6"
+uri = "file://attached_assets/generated_images/coreher_photo_v2_logo_horizontal.png"
+type = "image"
+title = "Style B — Full Logo Horizontal"
+
+[[outputs]]
+id = "PfNFq8Y1u9Tg-qVBAstXC"
+uri = "file://attached_assets/generated_images/coreher_wordmark.svg"
+type = "image"
+title = "Wordmark SVG (CoreHer Fitness text, editable)"
