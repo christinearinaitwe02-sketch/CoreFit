@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
 
@@ -130,6 +131,7 @@ export default function ChangePasswordScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <BottomNav active="profile" />
     </View>
   );
 }

@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 import { PremiumGate } from "@/components/PremiumGate";
 import { YoutubePlayer } from "@/components/YoutubePlayer";
 import {
@@ -87,6 +88,7 @@ export default function WorkoutVideoScreen() {
         <PremiumGate feature="Guided Video Workouts">
           <></>
         </PremiumGate>
+        <BottomNav active="workout" />
       </View>
     );
   }
@@ -114,7 +116,7 @@ export default function WorkoutVideoScreen() {
       </LinearGradient>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Info card sits flush under the video */}
@@ -204,14 +206,13 @@ export default function WorkoutVideoScreen() {
         </View>
       </ScrollView>
 
-      {/* Mark as Complete — floating footer */}
+      {/* Mark as Complete — footer */}
       <View
         style={[
           styles.footer,
           {
             backgroundColor: colors.background,
             borderTopColor: colors.border,
-            paddingBottom: insets.bottom + 16,
           },
         ]}
       >
@@ -240,6 +241,7 @@ export default function WorkoutVideoScreen() {
           </Animated.View>
         )}
       </View>
+      <BottomNav active="workout" />
     </View>
   );
 }
@@ -370,12 +372,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
+    paddingBottom: 12,
     borderTopWidth: 1,
   },
   completeBtn: {

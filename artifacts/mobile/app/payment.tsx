@@ -21,6 +21,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import BottomNav from "@/components/BottomNav";
 
 type Step = "instructions" | "form" | "success";
 
@@ -628,6 +629,7 @@ export default function PaymentScreen() {
             </View>
           )}
         </ScrollView>
+        <BottomNav active="profile" />
       </View>
     </KeyboardAvoidingView>
   );

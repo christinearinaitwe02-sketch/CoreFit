@@ -18,6 +18,7 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 
 const BENEFITS = [
   { icon: "award",      text: "90-Day Transformation Challenge" },
@@ -189,6 +190,7 @@ export default function UpgradeScreen() {
           Payments are manually verified by your coach. Access is activated within 24 hours of confirmation.
         </Text>
       </ScrollView>
+      <BottomNav active="profile" />
     </View>
   );
 }

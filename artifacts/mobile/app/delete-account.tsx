@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
 
@@ -181,6 +182,7 @@ export default function DeleteAccountScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <BottomNav active="profile" />
     </KeyboardAvoidingView>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 import { AnimatedProgressBar } from "@/components/AnimatedProgressBar";
 import { PremiumGate } from "@/components/PremiumGate";
 import { useApp } from "@/context/AppContext";
@@ -264,6 +265,7 @@ export default function ChallengeScreen() {
         <PremiumGate feature="90-Day Transformation Program">
           <></>
         </PremiumGate>
+        <BottomNav active="home" />
       </View>
     );
   }
@@ -384,6 +386,7 @@ export default function ChallengeScreen() {
           );
         }}
       />
+      <BottomNav active="home" />
     </View>
   );
 }

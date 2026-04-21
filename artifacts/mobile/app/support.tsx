@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import BackButton from "@/components/BackButton";
+import BottomNav from "@/components/BottomNav";
 import { PremiumGate } from "@/components/PremiumGate";
 
 const FAQS = [
@@ -239,6 +240,7 @@ export default function SupportScreen() {
         </TouchableOpacity>
       </ScrollView>
       </PremiumGate>
+      <BottomNav active="profile" />
     </View>
   );
 }
