@@ -58,7 +58,7 @@ title = "photo style fit woman icon v2"
 id = "_Y8AHZdjTmagHBz3uXGKg"
 uri = "file://attached_assets/generated_images/coreher_app_icon_rounded.png"
 type = "image"
-title = "App Icon — Rounded (1024×1024)"
+title = "App Icon — Rounded (1024×1024, App Store ready)"
 
 [[outputs]]
 id = "gy46ZHUpQ3W8rgKgz7bzt"
@@ -76,13 +76,13 @@ title = "Icon Mark — Transparent background"
 id = "mR2y-7Viqg7H7XZpxsZ-b"
 uri = "file://attached_assets/generated_images/coreher_logo_horizontal.png"
 type = "image"
-title = "Full Logo — Horizontal (transparent background)"
+title = "Full Logo — Horizontal"
 
 [[outputs]]
 id = "Hw4A_HaW9WfQEzNf9455C"
 uri = "file://attached_assets/generated_images/coreher_logo_stacked.png"
 type = "image"
-title = "Full Logo — Stacked with tagline (transparent background)"
+title = "Full Logo — Stacked with tagline"
 
 [[outputs]]
 id = "9rxpZpQEwGv1QII9DL-06"
@@ -142,4 +142,4 @@ title = "Style B — Full Logo Horizontal"
 id = "PfNFq8Y1u9Tg-qVBAstXC"
 uri = "file://attached_assets/generated_images/coreher_wordmark.svg"
 type = "image"
-title = "Wordmark SVG (CoreHer Fitness text, editable)"
+title = "Wordmark — SVG (editable)"
