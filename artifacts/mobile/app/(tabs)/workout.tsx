@@ -1,10 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -28,6 +30,7 @@ import {
   GUIDED_CATEGORIES,
   GuidedWorkoutCategory,
 } from "@/data/hiitWorkouts";
+import { getYoutubeThumbnail } from "@/components/YoutubePlayer";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -258,13 +261,32 @@ export default function WorkoutScreen() {
                       }}
                       style={[styles.guidedCard, { backgroundColor: colors.card }]}
                     >
-                      <View style={[styles.thumbnail, { backgroundColor: catColor + "22" }]}>
-                        <View style={[styles.thumbGradient, { backgroundColor: catColor }]}>
+                      {/* Thumbnail with real YouTube image */}
+                      <View style={styles.thumbnail}>
+                        <Image
+                          source={{ uri: getYoutubeThumbnail(w.videoUrl) }}
+                          style={styles.thumbImage}
+                          resizeMode="cover"
+                        />
+                        {/* Gradient fade at bottom of thumb */}
+                        <LinearGradient
+                          colors={["transparent", "rgba(0,0,0,0.65)"]}
+                          style={styles.thumbGradientOverlay}
+                        />
+                        {/* Centered play button */}
+                        <View style={styles.playOverlay}>
                           <View style={styles.playCircle}>
-                            <Feather name="play" size={20} color={catColor} />
+                            <Feather name="play" size={16} color="#fff" />
                           </View>
                         </View>
+                        {/* Duration badge — bottom right */}
+                        <View style={styles.durationBadge}>
+                          <Feather name="clock" size={9} color="#fff" />
+                          <Text style={styles.durationText}>{w.duration}</Text>
+                        </View>
                       </View>
+
+                      {/* Card body */}
                       <View style={styles.cardBody}>
                         <Text
                           style={[styles.cardTitle, { color: colors.foreground }]}
@@ -272,13 +294,9 @@ export default function WorkoutScreen() {
                         >
                           {w.title}
                         </Text>
-                        <View style={styles.cardMeta}>
-                          <Feather name="clock" size={12} color={colors.mutedForeground} />
-                          <Text style={[styles.cardMetaText, { color: colors.mutedForeground }]}>
-                            {w.duration}
-                          </Text>
-                        </View>
+                        {/* Level badge */}
                         <View style={[styles.levelPill, { backgroundColor: lc + "20" }]}>
+                          <View style={[styles.levelDot, { backgroundColor: lc }]} />
                           <Text style={[styles.levelPillText, { color: lc }]}>
                             {w.level}
                           </Text>
@@ -499,34 +517,61 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   guidedCard: {
-    width: 170,
+    width: 180,
     borderRadius: 18,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 10,
+    elevation: 4,
   },
   thumbnail: {
-    height: 100,
-    backgroundColor: "#6A0DAD22",
+    height: 108,
+    backgroundColor: "#1a1a2e",
+    position: "relative",
+    overflow: "hidden",
   },
-  thumbGradient: {
-    flex: 1,
+  thumbImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  thumbGradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
   },
   playCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#fff",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.8)",
     alignItems: "center",
     justifyContent: "center",
   },
+  durationBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "rgba(0,0,0,0.72)",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  durationText: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+  },
   cardBody: {
-    padding: 12,
+    padding: 10,
     gap: 6,
   },
   cardTitle: {
@@ -534,20 +579,19 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     lineHeight: 18,
   },
-  cardMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  cardMetaText: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-  },
   levelPill: {
     alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 100,
+  },
+  levelDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   levelPillText: {
     fontSize: 11,

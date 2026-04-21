@@ -12,11 +12,18 @@ interface YoutubePlayerProps {
   height?: number;
 }
 
-function getYoutubeId(url: string): string | null {
+export function getYoutubeId(url: string): string | null {
   const match = url.match(
     /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
   );
   return match ? match[1] : null;
+}
+
+export function getYoutubeThumbnail(videoUrl: string): string {
+  const id = getYoutubeId(videoUrl);
+  return id
+    ? `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+    : "";
 }
 
 export function YoutubePlayer({ videoUrl, height = 220 }: YoutubePlayerProps) {
