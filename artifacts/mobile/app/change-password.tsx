@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
-const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api-server`;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
 
 export default function ChangePasswordScreen() {
   const colors = useColors();

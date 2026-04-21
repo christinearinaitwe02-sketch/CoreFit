@@ -17,9 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp, Client } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-  : "";
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
 
 const AVATAR_COLORS = [
   "#9B5DE5", "#FF8FAB", "#FFB085", "#38BDF8", "#34D399", "#818CF8",

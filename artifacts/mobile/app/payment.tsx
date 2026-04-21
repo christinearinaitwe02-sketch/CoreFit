@@ -65,9 +65,7 @@ const BENEFITS = [
 
 const COUNTDOWN_SECS = 5 * 60;
 
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-  : "";
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
 
 const WHATSAPP_BASE = "https://wa.me/256702568383";
 const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";
