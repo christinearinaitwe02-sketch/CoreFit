@@ -215,9 +215,16 @@ export default function ProfileScreen() {
             <Text
               style={[styles.roleBadgeText, { color: isCoach ? colors.primary : colors.peach }]}
             >
-              {isCoach ? "Fitness Coach" : "Client"}
+              {isCoach ? "Coach" : "Client"}
             </Text>
           </View>
+
+          {isCoach && (
+            <View style={styles.adminBadge}>
+              <Feather name="shield" size={11} color="#fff" />
+              <Text style={styles.adminBadgeText}>Admin Mode</Text>
+            </View>
+          )}
 
           <Text style={[styles.profileEmail, { color: colors.mutedForeground }]}>{user.email}</Text>
         </View>
@@ -512,6 +519,17 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   roleBadgeText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  adminBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#6A0DAD",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+    marginTop: 4,
+  },
+  adminBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff", letterSpacing: 0.5 },
 
   /* Stats */
   statsGrid: {
