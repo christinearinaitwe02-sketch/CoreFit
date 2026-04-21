@@ -77,7 +77,9 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                   <Text style={{ color: "#6A0DAD" }}>Premium</Text>
                 </Text>
                 <Text style={[styles.sub, { color: colors.mutedForeground }]}>
-                  Unlock your full transformation journey with CoreHer Premium.
+                  {featureName
+                    ? `Unlock Premium to access the ${featureName}.`
+                    : "Unlock your full transformation journey with CoreHer Premium."}
                 </Text>
 
                 {/* Benefits */}
@@ -118,7 +120,7 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                     style={styles.upgradeBtn}
                   >
                     <Feather name="star" size={18} color="#FFD700" />
-                    <Text style={styles.upgradeBtnText}>Upgrade Now</Text>
+                    <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
                     <Feather name="arrow-right" size={18} color="#fff" />
                   </LinearGradient>
                 </TouchableOpacity>

@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const FAQS = [
   {
@@ -63,19 +64,22 @@ export default function SupportScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView
-        contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: 80 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
+      {/* Header — always accessible so users can navigate back */}
+      <View style={{ paddingTop: topPad + 8 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Feather name="arrow-left" size={22} color={colors.foreground} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Support</Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Coach Support</Text>
           <View style={{ width: 36 }} />
         </View>
+      </View>
 
+      <PremiumGate feature="Personal Coaching" embedded>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 80 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hero */}
         <LinearGradient
           colors={["#6A0DAD", "#9B5DE5"]}
@@ -235,6 +239,7 @@ export default function SupportScreen() {
           </View>
         </TouchableOpacity>
       </ScrollView>
+      </PremiumGate>
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, paymentsTable } from "@workspace/db";
+import { db, paymentsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 
 const router = Router();
@@ -89,6 +89,18 @@ router.patch("/payments/:id", async (req, res) => {
       .returning();
     if (updated.length === 0) {
       return res.status(404).json({ error: "Payment not found." });
+    }
+    if (action === "approve" && updated[0].userId) {
+      await db
+        .update(usersTable)
+        .set({ isPremium: true, paymentStatus: "approved" })
+        .where(eq(usersTable.id, updated[0].userId));
+    }
+    if (action === "reject" && updated[0].userId) {
+      await db
+        .update(usersTable)
+        .set({ paymentStatus: "rejected" })
+        .where(eq(usersTable.id, updated[0].userId));
     }
     return res.json({ success: true, payment: updated[0] });
   } catch (err) {

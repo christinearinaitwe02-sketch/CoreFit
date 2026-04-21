@@ -17,6 +17,7 @@ import { useColors } from "@/hooks/useColors";
 import { BarChart } from "@/components/BarChart";
 import { AnimatedProgressBar } from "@/components/AnimatedProgressBar";
 import { PillButton } from "@/components/PillButton";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -94,6 +95,7 @@ export default function ProgressScreen() {
       : { data: waterData, max: 4, color: "#38BDF8", unit: "L" };
 
   return (
+    <PremiumGate feature="Advanced Tracking">
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={{ paddingTop: topPad + 16, paddingBottom: 100 }}
@@ -361,6 +363,7 @@ export default function ProgressScreen() {
         </View>
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 

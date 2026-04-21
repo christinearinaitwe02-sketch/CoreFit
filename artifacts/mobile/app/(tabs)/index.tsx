@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { PremiumGateModal } from "@/components/PremiumGateModal";
 import {
   Alert,
@@ -62,6 +62,7 @@ export default function DashboardScreen() {
   const goals = useGoals();
   const challengeDay = getChallengeDay();
   const showPremiumBanner = !user?.isPremium;
+  const [showChallengeGate, setShowChallengeGate] = useState(false);
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
   const today = new Date().toISOString().split("T")[0];
@@ -224,6 +225,11 @@ export default function DashboardScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => {
+              if (!user?.isPremium) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setShowChallengeGate(true);
+                return;
+              }
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               startChallenge();
               Alert.alert(
@@ -434,6 +440,12 @@ export default function DashboardScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <PremiumGateModal
+        visible={showChallengeGate}
+        onClose={() => setShowChallengeGate(false)}
+        featureName="90-Day Transformation Program"
+      />
     </View>
   );
 }
