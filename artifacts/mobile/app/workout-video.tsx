@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
+import { PremiumGate } from "@/components/PremiumGate";
 import { YoutubePlayer } from "@/components/YoutubePlayer";
 import {
   findWorkoutById,
@@ -25,6 +26,8 @@ import {
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
+const FREE_PREVIEW_ID = "hiit-belly-blast";
+
 const LEVEL_COLOR: Record<string, string> = {
   Beginner:     "#10B981",
   Intermediate: "#FF8C42",
@@ -35,7 +38,7 @@ export default function WorkoutVideoScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { addWorkout } = useApp();
+  const { user, addWorkout } = useApp();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const workout = findWorkoutById(id ?? "") ?? ALL_GUIDED_WORKOUTS[0];
@@ -44,6 +47,8 @@ export default function WorkoutVideoScreen() {
   const catIcon     = CATEGORY_ICON[workout.category] ?? "activity";
   const catLabel    = CATEGORY_LABEL[workout.category] ?? "Workout";
   const topPad      = Platform.OS === "web" ? 67 : insets.top;
+  const isFree      = workout.id === FREE_PREVIEW_ID;
+  const isLocked    = !user?.isPremium && !isFree;
 
   const [completed, setCompleted] = useState(false);
   const [scale]    = useState(new Animated.Value(1));
@@ -63,6 +68,27 @@ export default function WorkoutVideoScreen() {
       calories: workout.estimatedCalories,
     });
     setCompleted(true);
+  }
+
+  if (isLocked) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background }]}>
+        {/* Back nav sits above the full-screen gate */}
+        <View
+          style={{
+            position: "absolute",
+            top: topPad + 8,
+            left: 16,
+            zIndex: 10,
+          }}
+        >
+          <BackButton color="#fff" fallback="/(tabs)/workout" />
+        </View>
+        <PremiumGate feature="Guided Video Workouts">
+          <></>
+        </PremiumGate>
+      </View>
+    );
   }
 
   return (

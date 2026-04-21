@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PillButton } from "@/components/PillButton";
+import { PremiumGateModal } from "@/components/PremiumGateModal";
 import { SectionHeader } from "@/components/SectionHeader";
 import {
   WorkoutTypeChip,
@@ -39,6 +40,8 @@ const LEVEL_COLOR: Record<string, string> = {
   Intermediate: "#FF8C42",
   Advanced:     "#FF6B6B",
 };
+
+const FREE_PREVIEW_ID = "hiit-belly-blast";
 
 const WORKOUT_TYPES: WorkoutType[] = [
   "walking",
@@ -74,12 +77,13 @@ export default function WorkoutScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { workouts, addWorkout, removeWorkout } = useApp();
+  const { user, workouts, addWorkout, removeWorkout } = useApp();
 
   const [selectedType, setSelectedType] = useState<WorkoutType>("walking");
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [gateVisible, setGateVisible] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -251,50 +255,87 @@ export default function WorkoutScreen() {
               >
                 {guided.map((w) => {
                   const lc = LEVEL_COLOR[w.level] ?? "#9B5DE5";
+                  const isFree = w.id === FREE_PREVIEW_ID;
+                  const isLocked = !user?.isPremium && !isFree;
+
                   return (
                     <TouchableOpacity
                       key={w.id}
                       activeOpacity={0.85}
                       onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        router.push(`/workout-video?id=${w.id}`);
+                        if (isLocked) {
+                          setGateVisible(true);
+                        } else {
+                          router.push(`/workout-video?id=${w.id}`);
+                        }
                       }}
                       style={[styles.guidedCard, { backgroundColor: colors.card }]}
                     >
-                      {/* Thumbnail with real YouTube image */}
+                      {/* Thumbnail */}
                       <View style={styles.thumbnail}>
                         <Image
                           source={{ uri: getYoutubeThumbnail(w.videoUrl) }}
                           style={styles.thumbImage}
                           resizeMode="cover"
+                          blurRadius={isLocked ? 3 : 0}
                         />
-                        {/* Gradient fade at bottom of thumb */}
+                        {/* Gradient fade */}
                         <LinearGradient
-                          colors={["transparent", "rgba(0,0,0,0.65)"]}
+                          colors={
+                            isLocked
+                              ? ["rgba(0,0,0,0.45)", "rgba(0,0,0,0.78)"]
+                              : ["transparent", "rgba(0,0,0,0.65)"]
+                          }
                           style={styles.thumbGradientOverlay}
                         />
-                        {/* Centered play button */}
-                        <View style={styles.playOverlay}>
-                          <View style={styles.playCircle}>
-                            <Feather name="play" size={16} color="#fff" />
+
+                        {isLocked ? (
+                          /* Lock overlay */
+                          <View style={styles.playOverlay}>
+                            <View style={styles.lockCircle}>
+                              <Feather name="lock" size={18} color="#FFD700" />
+                            </View>
                           </View>
-                        </View>
+                        ) : (
+                          /* Play button */
+                          <View style={styles.playOverlay}>
+                            <View style={styles.playCircle}>
+                              <Feather name="play" size={16} color="#fff" />
+                            </View>
+                          </View>
+                        )}
+
                         {/* Duration badge — bottom right */}
                         <View style={styles.durationBadge}>
                           <Feather name="clock" size={9} color="#fff" />
                           <Text style={styles.durationText}>{w.duration}</Text>
                         </View>
+
+                        {/* Free / Premium tag — top left */}
+                        {isFree ? (
+                          <View style={styles.freeTag}>
+                            <Text style={styles.freeTagText}>Free Preview</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.premiumTag}>
+                            <Feather name="star" size={9} color="#FFD700" />
+                            <Text style={styles.premiumTagText}>Premium</Text>
+                          </View>
+                        )}
                       </View>
 
                       {/* Card body */}
                       <View style={styles.cardBody}>
                         <Text
-                          style={[styles.cardTitle, { color: colors.foreground }]}
+                          style={[
+                            styles.cardTitle,
+                            { color: isLocked ? colors.mutedForeground : colors.foreground },
+                          ]}
                           numberOfLines={2}
                         >
                           {w.title}
                         </Text>
-                        {/* Level badge */}
                         <View style={[styles.levelPill, { backgroundColor: lc + "20" }]}>
                           <View style={[styles.levelDot, { backgroundColor: lc }]} />
                           <Text style={[styles.levelPillText, { color: lc }]}>
@@ -379,6 +420,11 @@ export default function WorkoutScreen() {
           </View>
         )}
       </ScrollView>
+      <PremiumGateModal
+        visible={gateVisible}
+        onClose={() => setGateVisible(false)}
+        featureName="Guided Video Workouts"
+      />
     </View>
   );
 }
@@ -596,5 +642,50 @@ const styles = StyleSheet.create({
   levelPillText: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
+  },
+  lockCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.60)",
+    borderWidth: 2,
+    borderColor: "rgba(255,215,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  freeTag: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    backgroundColor: "#10B981",
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  freeTagText: {
+    fontSize: 9,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    letterSpacing: 0.3,
+  },
+  premiumTag: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,215,0,0.4)",
+  },
+  premiumTagText: {
+    fontSize: 9,
+    fontFamily: "Inter_700Bold",
+    color: "#FFD700",
+    letterSpacing: 0.3,
   },
 });
