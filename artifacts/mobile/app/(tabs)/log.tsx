@@ -39,14 +39,17 @@ const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
 async function fetchCalorieEstimate(
   mealName: string,
   category: string
-): Promise<{ calories: number; confidence: string; notes: string }> {
+): Promise<{ foodName: string; calories: number; confidence: string; notes: string }> {
   const res = await fetch(`${API_BASE}/api/estimate-calories`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ mealName, category }),
   });
-  if (!res.ok) throw new Error("Failed to estimate");
-  return res.json() as Promise<{ calories: number; confidence: string; notes: string }>;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(err.error ?? "Failed to estimate");
+  }
+  return res.json() as Promise<{ foodName: string; calories: number; confidence: string; notes: string }>;
 }
 
 export default function LogScreen() {
@@ -62,6 +65,7 @@ export default function LogScreen() {
   const [mealCalories, setMealCalories] = useState("");
   const [estimating, setEstimating] = useState(false);
   const [aiNote, setAiNote] = useState("");
+  const [aiFoodName, setAiFoodName] = useState("");
   const [aiConfidence, setAiConfidence] = useState<"low" | "medium" | "high" | "">("");
 
   // Water state
@@ -88,14 +92,18 @@ export default function LogScreen() {
     }
     setEstimating(true);
     setAiNote("");
+    setAiFoodName("");
+    setAiConfidence("");
     try {
       const result = await fetchCalorieEstimate(mealName.trim(), mealCategory);
       setMealCalories(result.calories.toString());
+      setAiFoodName(result.foodName);
       setAiNote(result.notes);
       setAiConfidence(result.confidence as "low" | "medium" | "high");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert("Estimation failed", "Couldn't reach the AI. Enter calories manually.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Couldn't reach the AI.";
+      Alert.alert("Estimation failed", `${msg}\n\nYou can enter calories manually.`);
     } finally {
       setEstimating(false);
     }
@@ -116,6 +124,7 @@ export default function LogScreen() {
     setMealName("");
     setMealCalories("");
     setAiNote("");
+    setAiFoodName("");
     setAiConfidence("");
     Alert.alert("Saved!", `${mealName} has been added.`);
   };
@@ -232,6 +241,7 @@ export default function LogScreen() {
               onChangeText={(t) => {
                 setMealName(t);
                 setAiNote("");
+                setAiFoodName("");
                 setAiConfidence("");
               }}
               placeholder="e.g. Grilled chicken salad"
@@ -269,8 +279,13 @@ export default function LogScreen() {
                   )}
                 </TouchableOpacity>
               </View>
-              {aiNote ? (
+              {mealCalories && aiConfidence ? (
                 <View style={styles.aiResult}>
+                  {aiFoodName ? (
+                    <Text style={[styles.aiFoodName, { color: colors.foreground }]}>
+                      {aiFoodName}
+                    </Text>
+                  ) : null}
                   <View style={styles.aiResultRow}>
                     <Text style={[styles.aiCalorieValue, { color: colors.primary }]}>
                       {mealCalories} kcal
@@ -282,7 +297,9 @@ export default function LogScreen() {
                       </Text>
                     </View>
                   </View>
-                  <Text style={[styles.aiNoteText, { color: colors.purpleDark }]}>{aiNote}</Text>
+                  {aiNote ? (
+                    <Text style={[styles.aiNoteText, { color: colors.purpleDark }]}>{aiNote}</Text>
+                  ) : null}
                 </View>
               ) : null}
             </View>
@@ -572,6 +589,7 @@ const styles = StyleSheet.create({
   },
   confidenceDot: { width: 6, height: 6, borderRadius: 3 },
   confidenceText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  aiFoodName: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   aiNoteText: { fontSize: 12, fontFamily: "Inter_400Regular", fontStyle: "italic" },
   // meal list
   mealItem: {

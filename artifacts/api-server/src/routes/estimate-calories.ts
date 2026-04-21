@@ -5,6 +5,15 @@ const router = Router();
 const OPENAI_BASE_URL = process.env["AI_INTEGRATIONS_OPENAI_BASE_URL"];
 const OPENAI_API_KEY = process.env["AI_INTEGRATIONS_OPENAI_API_KEY"];
 
+function extractJson(raw: string): string {
+  const stripped = raw.trim();
+  const fenceMatch = stripped.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) return fenceMatch[1].trim();
+  const objMatch = stripped.match(/\{[\s\S]*\}/);
+  if (objMatch) return objMatch[0];
+  return stripped;
+}
+
 router.post("/estimate-calories", async (req, res) => {
   const { mealName, category } = req.body as {
     mealName?: string;
@@ -21,6 +30,20 @@ router.post("/estimate-calories", async (req, res) => {
     return;
   }
 
+  const userInput = category ? `${mealName} (${category})` : mealName;
+
+  const prompt = `Estimate the calories for the following meal.
+If portion is unclear, assume a standard serving.
+Return ONLY valid JSON with these exact fields:
+{
+  "food_name": "<string>",
+  "calories": <number>,
+  "confidence": "low" | "medium" | "high",
+  "notes": "<brief one-line note>"
+}
+
+Meal: ${userInput}`;
+
   try {
     const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
       method: "POST",
@@ -29,17 +52,18 @@ router.post("/estimate-calories", async (req, res) => {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-5-nano",
-        max_completion_tokens: 100,
+        model: "gpt-4o-mini",
+        max_completion_tokens: 150,
+        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
             content:
-              "You are a nutrition expert. Given a meal name, estimate its calorie count. Respond with ONLY a JSON object: {\"calories\": <number>, \"confidence\": \"low|medium|high\", \"notes\": \"<brief note>\"}. No other text.",
+              "You are a nutrition expert. Always respond with valid JSON only. No markdown, no explanation — just the JSON object.",
           },
           {
             role: "user",
-            content: `Meal: ${mealName}${category ? ` (${category})` : ""}. Estimate calories for a typical single serving.`,
+            content: prompt,
           },
         ],
       }),
@@ -56,18 +80,31 @@ router.post("/estimate-calories", async (req, res) => {
       choices: Array<{ message: { content: string } }>;
     };
 
-    const content = data.choices[0]?.message?.content ?? "{}";
-    const parsed = JSON.parse(content) as {
-      calories: number;
-      confidence: string;
-      notes: string;
-    };
+    const raw = data.choices[0]?.message?.content ?? "{}";
 
-    res.json({
-      calories: Math.round(parsed.calories ?? 0),
-      confidence: parsed.confidence ?? "low",
-      notes: parsed.notes ?? "",
-    });
+    let parsed: {
+      food_name?: string;
+      calories?: number;
+      confidence?: string;
+      notes?: string;
+    } = {};
+
+    try {
+      parsed = JSON.parse(extractJson(raw));
+    } catch (parseErr) {
+      req.log.error({ raw, parseErr }, "Failed to parse AI JSON response");
+      res.status(502).json({ error: "AI returned an unexpected response format" });
+      return;
+    }
+
+    const calories = typeof parsed.calories === "number" ? Math.round(parsed.calories) : 0;
+    const foodName = parsed.food_name ?? mealName;
+    const confidence = (["low", "medium", "high"].includes(parsed.confidence ?? "")
+      ? parsed.confidence
+      : "medium") as "low" | "medium" | "high";
+    const notes = parsed.notes ?? "";
+
+    res.json({ foodName, calories, confidence, notes });
   } catch (err) {
     req.log.error({ err }, "Failed to estimate calories");
     res.status(500).json({ error: "Failed to estimate calories" });
