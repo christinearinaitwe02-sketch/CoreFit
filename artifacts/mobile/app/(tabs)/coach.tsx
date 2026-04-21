@@ -45,7 +45,7 @@ function ClientCard({ client, onPress }: { client: Client; onPress: () => void }
   const avatarColor = getAvatarColor(client.name);
   const firstLetter = client.name[0].toUpperCase();
   const joinDate = new Date(client.joinDate + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
+    month: "short", day: "numeric", year: "numeric", timeZone: "Africa/Nairobi",
   });
 
   return (
@@ -78,7 +78,7 @@ function PaymentCard({
 }) {
   const colors = useColors();
   const date = new Date(payment.createdAt).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
+    month: "short", day: "numeric", year: "numeric", timeZone: "Africa/Nairobi",
   });
 
   const statusColor =

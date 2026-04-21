@@ -68,7 +68,7 @@ export default function LogScreen() {
   const [aiConfidence, setAiConfidence] = useState<"low" | "medium" | "high" | "">("");
 
   // Water state
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
   const todayWater = getTodayWater();
   const [litres, setLitres] = useState(todayWater);
 

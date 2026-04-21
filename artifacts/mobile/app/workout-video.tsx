@@ -61,7 +61,7 @@ export default function WorkoutVideoScreen() {
       Animated.timing(scale, { toValue: 0.93, duration: 80, useNativeDriver: true }),
       Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
     ]).start();
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
     addWorkout({
       date: today,
       type: workout.category as any,

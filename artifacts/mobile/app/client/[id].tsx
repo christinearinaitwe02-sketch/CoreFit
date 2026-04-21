@@ -76,7 +76,7 @@ export default function ClientDetailScreen() {
   const avatarColor = getAvatarColor(client.name);
   const joinDate = new Date(client.joinDate + "T00:00:00").toLocaleDateString(
     "en-US",
-    { month: "long", day: "numeric", year: "numeric" }
+    { month: "long", day: "numeric", year: "numeric", timeZone: "Africa/Nairobi" }
   );
 
   const handleSaveNote = () => {

@@ -120,7 +120,7 @@ export default function WorkoutScreen() {
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
     addWorkout({
       date: today,
       type: selectedType,

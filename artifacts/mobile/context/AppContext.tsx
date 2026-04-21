@@ -193,12 +193,12 @@ const DEMO_CLIENTS: Client[] = [
 const generateId = () =>
   Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
 
 const daysAgo = (n: number) => {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return d.toISOString().split("T")[0];
+  return d.toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
 };
 
 const SEED_WORKOUTS: WorkoutEntry[] = [

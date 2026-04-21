@@ -23,7 +23,8 @@ import { useApp, useGoals } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 function greeting() {
-  const h = new Date().getHours();
+  const raw = new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi", hour: "numeric", hour12: false });
+  const h = parseInt(raw, 10);
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
@@ -35,6 +36,7 @@ function formatDate(date: string) {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 
@@ -65,7 +67,7 @@ export default function DashboardScreen() {
   const [showChallengeGate, setShowChallengeGate] = useState(false);
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
   const todayWorkouts = workouts.filter((w) => w.date === today).slice(0, 3);
   const todayMeals = meals.filter((m) => m.date === today).slice(0, 3);
 
