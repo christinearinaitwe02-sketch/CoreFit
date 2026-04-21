@@ -61,7 +61,7 @@ export default function DashboardScreen() {
   } = useApp();
   const goals = useGoals();
   const challengeDay = getChallengeDay();
-  const showPremiumBanner = !user?.isPremium;
+  const showPremiumBanner = !user?.isPremium && user?.role !== "coach";
   const [showChallengeGate, setShowChallengeGate] = useState(false);
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
@@ -225,7 +225,7 @@ export default function DashboardScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => {
-              if (!user?.isPremium) {
+              if (!user?.isPremium && user?.role !== "coach") {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 setShowChallengeGate(true);
                 return;

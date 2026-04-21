@@ -256,7 +256,7 @@ export default function ChallengeScreen() {
 
   const currentMeta = PHASE_META[activePhase];
 
-  if (!user?.isPremium) {
+  if (!user?.isPremium && user?.role !== "coach") {
     return (
       <View style={[styles.gateWrap, { backgroundColor: colors.background }]}>
         <View style={[styles.gateBack, { top: topPad + 8 }]}>

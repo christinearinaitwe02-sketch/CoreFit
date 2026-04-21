@@ -46,7 +46,7 @@ export default function UpgradeScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const hasPendingPayment = user?.paymentStatus === "pending";
-  const isApproved = user?.paymentStatus === "approved" || user?.isPremium;
+  const isApproved = user?.paymentStatus === "approved" || user?.isPremium || user?.role === "coach";
 
   const handleCheckStatus = async () => {
     setChecking(true);

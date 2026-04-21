@@ -25,7 +25,7 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
   const insets = useSafeAreaInsets();
   const topPad = embedded ? 0 : Platform.OS === "web" ? 67 : insets.top;
 
-  if (user?.isPremium) return <>{children}</>;
+  if (user?.isPremium || user?.role === "coach") return <>{children}</>;
 
   return (
     <LinearGradient
