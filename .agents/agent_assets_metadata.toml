@@ -1,0 +1,14 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "HIKw2xEv_s8FN3JWaA1jA"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "fittrack pro app icon"
+
+[[generated]]
+id = "unwIJw1oKOzCmu4EWIgK9"
+uri = "file://artifacts/mobile/assets/images/splash-bg.png"
+type = "image"
+title = "fittrack pro splash background"

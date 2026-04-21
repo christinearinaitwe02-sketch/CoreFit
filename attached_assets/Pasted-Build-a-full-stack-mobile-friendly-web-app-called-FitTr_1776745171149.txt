@@ -1,0 +1,80 @@
+Build a full-stack mobile-friendly web app called “FitTrack Pro” for a fitness coach to manage clients and track their daily health and fitness activities.
+
+TECH STACK:
+- Frontend: React (mobile-first design, clean and modern UI)
+- Backend: Node.js with Express
+- Database: Firebase or MongoDB
+- Authentication: Email/password login
+
+CORE FEATURES:
+
+1. USER ROLES
+- Admin (Coach)
+- Client (User)
+
+2. DASHBOARD (CLIENT SIDE)
+- Daily summary view showing:
+  - Calories burned (from workouts)
+  - Meals logged (breakfast, lunch, dinner)
+  - Water intake (liters)
+  - Sleep hours
+- Progress bar for daily goals
+
+3. WORKOUT TRACKING
+- User can:
+  - Start a workout timer
+  - Select workout type (cardio, strength, HIIT, etc.)
+  - Automatically estimate calories burned based on duration and type
+- Save workout history
+
+4. MEAL TRACKING
+- User can:
+  - Upload a photo of meals OR type meal details
+  - Categorize as breakfast, lunch, dinner
+  - Optional: estimate calories
+- Store daily meal logs
+
+5. WATER TRACKING
+- Simple button to log glasses of water
+- Show daily total
+
+6. SLEEP TRACKING
+- Input hours slept
+- Store daily sleep record
+
+7. DAILY TIMELINE VIEW
+- Show all activities in a timeline (workout, meals, water, sleep)
+
+8. COACH DASHBOARD
+- Coach can:
+  - View all clients
+  - Click into a client profile
+  - See progress (weight, consistency, logs)
+  - Add notes or recommendations
+
+9. NOTIFICATIONS
+- Reminders for:
+  - Logging meals
+  - Drinking water
+  - Workout time
+
+10. MONETIZATION FEATURES
+- Subscription system (basic vs premium)
+- Premium unlocks:
+  - Personalized plans
+  - Coach chat
+  - Advanced analytics
+
+11. UI/UX DESIGN
+- Clean, modern, feminine but strong branding (target audience: women fitness clients)
+- Use soft colors (peach, purple, white)
+- Mobile-first layout
+
+12. SCALABILITY
+- Use clean code structure (components, services, routes)
+- Prepare for future mobile app integration
+
+DELIVERABLES:
+- Full working MVP
+- Clear folder structure
+- Instructions on how to run the app
