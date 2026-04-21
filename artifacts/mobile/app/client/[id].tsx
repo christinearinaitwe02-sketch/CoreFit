@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PillButton } from "@/components/PillButton";
+import { PremiumGateModal } from "@/components/PremiumGateModal";
 
 const AVATAR_COLORS = [
   "#9B5DE5",
@@ -49,6 +49,7 @@ export default function ClientDetailScreen() {
   const client = clients.find((c) => c.id === id);
 
   const [note, setNote] = useState(client?.notes ?? "");
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
   const [editNote, setEditNote] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -240,16 +241,20 @@ export default function ClientDetailScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
           <PillButton
             label="Send Recommendation"
-            onPress={() =>
-              Alert.alert(
-                "Premium Feature",
-                "Coach chat is available with Premium. Upgrade to message your clients directly!"
-              )
-            }
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowPremiumGate(true);
+            }}
             icon={<Feather name="send" size={16} color="#fff" />}
           />
         </View>
       </ScrollView>
+
+      <PremiumGateModal
+        visible={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="Coach Recommendations"
+      />
     </View>
   );
 }

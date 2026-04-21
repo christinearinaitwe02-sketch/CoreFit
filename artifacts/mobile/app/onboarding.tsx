@@ -16,6 +16,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
+const PREMIUM_PERKS = [
+  { icon: "trending-down", label: "Lose belly fat", color: "#FF7F7F" },
+  { icon: "zap",           label: "Daily guided workouts", color: "#6A0DAD" },
+  { icon: "book-open",     label: "Track meals & progress", color: "#FF7F7F" },
+  { icon: "award",         label: "90-Day Challenge access", color: "#6A0DAD" },
+  { icon: "heart",         label: "Personal coach support", color: "#FF7F7F" },
+];
+
 const FEATURES = [
   {
     icon: "zap",
@@ -52,6 +60,12 @@ export default function OnboardingScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeOnboarding();
     router.replace("/(tabs)");
+  };
+
+  const handleStartPremium = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    completeOnboarding();
+    router.replace("/upgrade" as any);
   };
 
   return (
@@ -134,24 +148,73 @@ export default function OnboardingScreen() {
           </Text>
         </View>
 
-        {/* CTA */}
-        <TouchableOpacity onPress={handleStart} activeOpacity={0.85} style={styles.ctaWrap}>
+        {/* ── Premium Upsell Card ── */}
+        <View style={[styles.premiumCard, { backgroundColor: colors.card }]}>
+          {/* Card header */}
           <LinearGradient
-            colors={[colors.gradientStart, colors.gradientEnd]}
+            colors={["#6A0DAD", "#9B5DE5"]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.cta}
+            end={{ x: 1, y: 1 }}
+            style={styles.premiumCardHeader}
           >
-            <Text style={styles.ctaText}>Get Started</Text>
-            <Feather name="arrow-right" size={18} color="#fff" />
+            <View style={styles.premiumCardHeaderRow}>
+              <View style={styles.premiumStarCircle}>
+                <Feather name="star" size={18} color="#FFD700" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.premiumCardTitle}>Go Premium Today</Text>
+                <Text style={styles.premiumCardSub}>
+                  Unlock your full transformation
+                </Text>
+              </View>
+              <View style={styles.premiumCardPricePill}>
+                <Text style={styles.premiumCardPriceAmt}>UGX 75,000</Text>
+                <Text style={styles.premiumCardPriceSub}>one-time</Text>
+              </View>
+            </View>
           </LinearGradient>
-        </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleStart} style={styles.skipBtn}>
-          <Text style={[styles.skipText, { color: colors.mutedForeground }]}>
-            Skip intro
-          </Text>
-        </TouchableOpacity>
+          {/* Perks */}
+          <View style={styles.premiumPerks}>
+            {PREMIUM_PERKS.map((p) => (
+              <View key={p.label} style={styles.premiumPerkRow}>
+                <View
+                  style={[
+                    styles.premiumPerkIcon,
+                    { backgroundColor: p.color + "18" },
+                  ]}
+                >
+                  <Feather name={p.icon as any} size={14} color={p.color} />
+                </View>
+                <Text style={[styles.premiumPerkLabel, { color: colors.foreground }]}>
+                  {p.label}
+                </Text>
+                <Feather name="check" size={14} color="#22C55E" />
+              </View>
+            ))}
+          </View>
+
+          {/* Primary CTA */}
+          <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap}>
+            <LinearGradient
+              colors={["#6A0DAD", "#9B5DE5"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.premiumCTA}
+            >
+              <Feather name="star" size={17} color="#FFD700" />
+              <Text style={styles.premiumCTAText}>Start My Transformation</Text>
+              <Feather name="arrow-right" size={17} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Secondary */}
+          <TouchableOpacity onPress={handleStart} style={styles.skipBtn}>
+            <Text style={[styles.skipText, { color: colors.mutedForeground }]}>
+              Explore for free first
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -247,26 +310,43 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   badgeText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  ctaWrap: { marginTop: 6 },
-  cta: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 100,
+  premiumCard: {
+    borderRadius: 22,
+    overflow: "hidden",
     shadowColor: "#6A0DAD",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  ctaText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 0.3,
+  premiumCardHeader: { padding: 18 },
+  premiumCardHeaderRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  premiumStarCircle: {
+    width: 44, height: 44, borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center", justifyContent: "center",
   },
-  skipBtn: { alignSelf: "center", paddingVertical: 8 },
+  premiumCardTitle: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#fff" },
+  premiumCardSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)", marginTop: 2 },
+  premiumCardPricePill: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 12, padding: 10, alignItems: "center",
+  },
+  premiumCardPriceAmt: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#fff" },
+  premiumCardPriceSub: { fontSize: 10, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)", marginTop: 1 },
+  premiumPerks: { padding: 16, gap: 12 },
+  premiumPerkRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  premiumPerkIcon: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  premiumPerkLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  premiumCTAWrap: { marginHorizontal: 16, marginBottom: 4, borderRadius: 100, overflow: "hidden" },
+  premiumCTA: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 10, paddingVertical: 16, paddingHorizontal: 20,
+  },
+  premiumCTAText: {
+    flex: 1, textAlign: "center",
+    color: "#fff", fontSize: 15, fontFamily: "Inter_700Bold",
+  },
+  skipBtn: { alignSelf: "center", paddingVertical: 14, paddingBottom: 18 },
   skipText: { fontSize: 13, fontFamily: "Inter_500Medium" },
 });

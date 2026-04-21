@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useMemo } from "react";
+import { PremiumGateModal } from "@/components/PremiumGateModal";
 import {
   Alert,
   Linking,
@@ -37,6 +38,13 @@ function formatDate(date: string) {
   });
 }
 
+const PREMIUM_BULLETS = [
+  { icon: "trending-down", label: "Lose belly fat" },
+  { icon: "zap",           label: "Daily guided workouts" },
+  { icon: "book-open",     label: "Meal & progress tracking" },
+  { icon: "heart",         label: "Personal coach support" },
+];
+
 export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -52,6 +60,7 @@ export default function DashboardScreen() {
   } = useApp();
   const goals = useGoals();
   const challengeDay = getChallengeDay();
+  const showPremiumBanner = !user?.isPremium;
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
   const today = new Date().toISOString().split("T")[0];
@@ -101,6 +110,58 @@ export default function DashboardScreen() {
             {formatDate(today)}
           </Text>
         </View>
+
+        {/* ── Premium Banner (non-premium users only) ── */}
+        {showPremiumBanner && (
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push("/upgrade");
+            }}
+            activeOpacity={0.9}
+            style={styles.premiumBannerWrap}
+          >
+            <LinearGradient
+              colors={["#6A0DAD", "#9B5DE5"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.premiumBanner}
+            >
+              {/* Top row */}
+              <View style={styles.premiumBannerTop}>
+                <View style={styles.premiumBannerLeft}>
+                  <View style={styles.premiumStarBadge}>
+                    <Feather name="star" size={13} color="#FFD700" />
+                    <Text style={styles.premiumStarText}>Premium</Text>
+                  </View>
+                  <Text style={styles.premiumBannerTitle}>
+                    Start Your 90-Day{"\n"}Transformation
+                  </Text>
+                </View>
+                <View style={styles.premiumPriceBox}>
+                  <Text style={styles.premiumPriceSub}>One-time</Text>
+                  <Text style={styles.premiumPriceAmt}>UGX{"\n"}75,000</Text>
+                </View>
+              </View>
+
+              {/* Benefits */}
+              <View style={styles.premiumBullets}>
+                {PREMIUM_BULLETS.map((b) => (
+                  <View key={b.label} style={styles.premiumBulletItem}>
+                    <Feather name={b.icon as any} size={11} color="rgba(255,255,255,0.85)" />
+                    <Text style={styles.premiumBulletText}>{b.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* CTA row */}
+              <View style={styles.premiumBannerCTA}>
+                <Text style={styles.premiumBannerCTAText}>Unlock Premium</Text>
+                <Feather name="arrow-right" size={15} color="#fff" />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* ── Hero Stats Card ── */}
         <View style={[styles.heroCard, { backgroundColor: colors.card }]}>
@@ -615,6 +676,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 100,
   },
+  premiumBannerWrap: { borderRadius: 22, overflow: "hidden", marginBottom: 4 },
+  premiumBanner: { borderRadius: 22, padding: 18, gap: 14 },
+  premiumBannerTop: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  premiumBannerLeft: { flex: 1, gap: 8 },
+  premiumStarBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100,
+  },
+  premiumStarText: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#FFD700" },
+  premiumBannerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#fff", lineHeight: 24 },
+  premiumPriceBox: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 14, padding: 12, alignItems: "center", minWidth: 80,
+  },
+  premiumPriceSub: { fontSize: 10, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)" },
+  premiumPriceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff", textAlign: "center", marginTop: 2 },
+  premiumBullets: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  premiumBulletItem: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 100,
+  },
+  premiumBulletText: { fontSize: 11, fontFamily: "Inter_500Medium", color: "#fff" },
+  premiumBannerCTA: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 12,
+    paddingVertical: 12,
+  },
+  premiumBannerCTAText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff" },
+
   challengeBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold" },
   challengeDay: { fontSize: 16, fontFamily: "Inter_700Bold" },
   challengeDayTotal: { fontSize: 13, fontFamily: "Inter_400Regular" },
