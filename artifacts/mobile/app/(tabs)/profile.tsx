@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -305,6 +306,36 @@ export default function ProfileScreen() {
               <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           ))}
+        </View>
+
+        {/* Help & Support */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Help & Support</Text>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push("/support");
+            }}
+            style={[styles.switchCard, { backgroundColor: colors.card }]}
+          >
+            <Feather name="help-circle" size={18} color={colors.mutedForeground} />
+            <Text style={[styles.switchName, { color: colors.foreground }]}>Support Center</Text>
+            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.selectionAsync();
+              Linking.openURL("https://wa.me/256702568383?text=" + encodeURIComponent("Hi Coach TinaBarks, I need help with CoreHer Fitness."));
+            }}
+            style={[styles.switchCard, { backgroundColor: colors.card }]}
+          >
+            <Feather name="message-circle" size={18} color="#25D366" />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.switchName, { color: colors.foreground }]}>Chat with Coach TinaBarks</Text>
+              <Text style={[styles.switchRole, { color: colors.mutedForeground }]}>WhatsApp · +256702568383</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+          </TouchableOpacity>
         </View>
 
         {/* Sign Out */}

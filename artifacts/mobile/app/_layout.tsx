@@ -46,6 +46,10 @@ function RootLayoutNav() {
         name="payment"
         options={{ headerShown: false, presentation: "card" }}
       />
+      <Stack.Screen
+        name="support"
+        options={{ headerShown: false, presentation: "card" }}
+      />
     </Stack>
   );
 }

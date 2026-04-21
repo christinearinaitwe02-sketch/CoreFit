@@ -2,12 +2,13 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
   Animated,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -67,6 +68,20 @@ const COUNTDOWN_SECS = 5 * 60;
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
   ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
   : "";
+
+const WHATSAPP_URL = "https://wa.me/256702568383";
+
+async function openWhatsApp(message?: string) {
+  const url = message
+    ? `${WHATSAPP_URL}?text=${encodeURIComponent(message)}`
+    : WHATSAPP_URL;
+  const supported = await Linking.canOpenURL(url);
+  if (supported) {
+    await Linking.openURL(url);
+  } else {
+    Alert.alert("WhatsApp", "Please contact Coach TinaBarks directly on +256702568383");
+  }
+}
 
 function formatTime(secs: number) {
   const m = Math.floor(secs / 60);
@@ -412,6 +427,26 @@ export default function PaymentScreen() {
                 </View>
               </View>
 
+              {/* WhatsApp help strip */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  openWhatsApp("Hi Coach TinaBarks, I need help with my Airtel Money payment for CoreHer Fitness.");
+                }}
+                activeOpacity={0.8}
+                style={[styles.waStrip, { backgroundColor: "#25D36614" }]}
+              >
+                <Feather name="message-circle" size={16} color="#25D366" />
+                <Text style={[styles.waStripText, { color: "#128C7E" }]}>
+                  Need help? Contact{" "}
+                  <Text style={styles.waStripBold}>Coach TinaBarks</Text>
+                  {" "}on WhatsApp
+                </Text>
+                <View style={styles.waPhonePill}>
+                  <Text style={styles.waPhoneText}>+256702568383</Text>
+                </View>
+              </TouchableOpacity>
+
               {/* I Have Paid button */}
               <TouchableOpacity
                 onPress={goToForm}
@@ -552,6 +587,22 @@ export default function PaymentScreen() {
                   Your coach will review and approve your payment. This typically takes less than 24 hours.
                 </Text>
               </View>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  openWhatsApp("Hi Coach TinaBarks, I just submitted my payment for CoreHer Fitness Premium. Please confirm when it is approved. Thank you!");
+                }}
+                activeOpacity={0.8}
+                style={[styles.waStrip, { backgroundColor: "#25D36614", marginHorizontal: 0, width: "100%" }]}
+              >
+                <Feather name="message-circle" size={16} color="#25D366" />
+                <Text style={[styles.waStripText, { color: "#128C7E", flex: 1 }]}>
+                  Not confirmed?{" "}
+                  <Text style={styles.waStripBold}>Chat with Coach TinaBarks</Text>
+                  {" "}on{" "}
+                  <Text style={[styles.waStripBold, { color: "#25D366" }]}>+256702568383</Text>
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => router.replace("/(tabs)/profile")}
                 activeOpacity={0.87}
@@ -715,6 +766,26 @@ const styles = StyleSheet.create({
     fontSize: 15, fontFamily: "Inter_400Regular", borderWidth: 1,
   },
   fieldHint: { fontSize: 11, fontFamily: "Inter_400Regular" },
+
+  waStrip: {
+    marginHorizontal: 20,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+  },
+  waStripText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 18 },
+  waStripBold: { fontFamily: "Inter_600SemiBold" },
+  waPhonePill: {
+    backgroundColor: "#25D366",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  waPhoneText: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" },
 
   successWrap: { alignItems: "center", paddingHorizontal: 28, paddingTop: 20, gap: 16 },
   successIcon: {

@@ -5,6 +5,7 @@ import * as Haptics from "expo-haptics";
 import React, { useMemo } from "react";
 import {
   Alert,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -353,6 +354,19 @@ export default function DashboardScreen() {
             ))}
           </View>
         )}
+
+        {/* WhatsApp help link */}
+        <TouchableOpacity
+          onPress={() => Linking.openURL("https://wa.me/256702568383")}
+          activeOpacity={0.7}
+          style={styles.helpLink}
+        >
+          <Feather name="message-circle" size={14} color="#25D366" />
+          <Text style={[styles.helpLinkText, { color: colors.mutedForeground }]}>
+            Need help?{" "}
+            <Text style={styles.helpLinkBold}>Chat with Coach</Text>
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -605,4 +619,14 @@ const styles = StyleSheet.create({
   challengeDay: { fontSize: 16, fontFamily: "Inter_700Bold" },
   challengeDayTotal: { fontSize: 13, fontFamily: "Inter_400Regular" },
   challengeKeepGoing: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  helpLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 16,
+    marginTop: 8,
+  },
+  helpLinkText: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  helpLinkBold: { fontFamily: "Inter_600SemiBold", color: "#25D366" },
 });
