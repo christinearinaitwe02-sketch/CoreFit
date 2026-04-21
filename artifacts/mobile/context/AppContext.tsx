@@ -15,6 +15,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  isPremium?: boolean;
+  paymentStatus?: "none" | "pending" | "approved" | "rejected";
   goals?: {
     calories: number;
     water: number;
@@ -79,6 +81,8 @@ export interface DaySummary {
 interface AppContextValue {
   user: User | null;
   setUser: (user: User | null) => void;
+  setPaymentPending: () => void;
+  checkPremiumStatus: () => Promise<void>;
 
   workouts: WorkoutEntry[];
   addWorkout: (workout: Omit<WorkoutEntry, "id">) => void;
@@ -252,6 +256,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     else await AsyncStorage.removeItem("user");
   }, []);
 
+  const setPaymentPending = useCallback(() => {
+    setUserState((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, paymentStatus: "pending" as const };
+      AsyncStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const API_BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
+    ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+    : "";
+
+  const checkPremiumStatus = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/payments/status/${user.id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.status === "approved") {
+        setUserState((prev) => {
+          if (!prev) return prev;
+          const updated = { ...prev, isPremium: true, paymentStatus: "approved" as const };
+          AsyncStorage.setItem("user", JSON.stringify(updated));
+          return updated;
+        });
+      } else if (data.status === "pending") {
+        setUserState((prev) => {
+          if (!prev) return prev;
+          const updated = { ...prev, paymentStatus: "pending" as const };
+          AsyncStorage.setItem("user", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch {
+      // network error, ignore
+    }
+  }, [user?.id, API_BASE_URL]);
+
   const addWorkout = useCallback(
     async (workout: Omit<WorkoutEntry, "id">) => {
       const entry: WorkoutEntry = { ...workout, id: generateId() };
@@ -384,7 +427,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        user, setUser,
+        user, setUser, setPaymentPending, checkPremiumStatus,
         workouts, addWorkout, removeWorkout,
         meals, addMeal, removeMeal,
         waterEntries, addWaterEntry, getTodayWater,

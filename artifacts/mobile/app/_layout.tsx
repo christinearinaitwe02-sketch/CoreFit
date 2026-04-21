@@ -38,6 +38,14 @@ function RootLayoutNav() {
         name="client/[id]"
         options={{ headerShown: false, presentation: "card" }}
       />
+      <Stack.Screen
+        name="upgrade"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="payment"
+        options={{ headerShown: false, presentation: "card" }}
+      />
     </Stack>
   );
 }

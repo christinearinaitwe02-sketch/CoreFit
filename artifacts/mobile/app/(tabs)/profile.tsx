@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -36,6 +38,7 @@ const DEMO_USERS: User[] = [
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { user, setUser, workouts, meals, waterEntries, sleepEntries } = useApp();
 
   const [editMode, setEditMode] = useState(false);
@@ -209,32 +212,70 @@ export default function ProfileScreen() {
         </View>
 
         {/* Subscription */}
-        <View
-          style={[
-            styles.subscriptionCard,
-            { backgroundColor: colors.primaryLight },
-          ]}
-        >
-          <View style={styles.subRow}>
-            <Feather name="star" size={20} color={colors.primary} />
-            <View style={styles.subInfo}>
-              <Text style={[styles.subTitle, { color: colors.primary }]}>
-                Premium Plan
-              </Text>
-              <Text style={[styles.subDesc, { color: colors.purpleDark }]}>
-                Personalized plans, coach chat & advanced analytics
-              </Text>
+        {user.role === "client" && (
+          user.isPremium ? (
+            <View style={[styles.subscriptionCard, { backgroundColor: "#22C55E18" }]}>
+              <View style={styles.subRow}>
+                <Feather name="check-circle" size={20} color="#22C55E" />
+                <View style={styles.subInfo}>
+                  <Text style={[styles.subTitle, { color: "#22C55E" }]}>Premium Active</Text>
+                  <Text style={[styles.subDesc, { color: colors.mutedForeground }]}>
+                    Your transformation journey is fully unlocked.
+                  </Text>
+                </View>
+                <View style={[styles.subBadge, { backgroundColor: "#22C55E" }]}>
+                  <Text style={styles.subBadgeText}>PRO</Text>
+                </View>
+              </View>
             </View>
-            <View style={[styles.subBadge, { backgroundColor: colors.primary }]}>
-              <Text style={styles.subBadgeText}>PRO</Text>
+          ) : user.paymentStatus === "pending" ? (
+            <View style={[styles.subscriptionCard, { backgroundColor: "#F59E0B18" }]}>
+              <View style={styles.subRow}>
+                <Feather name="clock" size={20} color="#F59E0B" />
+                <View style={styles.subInfo}>
+                  <Text style={[styles.subTitle, { color: "#F59E0B" }]}>Payment Under Review</Text>
+                  <Text style={[styles.subDesc, { color: colors.mutedForeground }]}>
+                    Your coach will confirm your payment shortly.
+                  </Text>
+                </View>
+              </View>
+              <PillButton
+                label="View Status"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/upgrade");
+                }}
+                style={{ marginTop: 12 }}
+              />
             </View>
-          </View>
-          <PillButton
-            label="Upgrade to Premium"
-            onPress={() => Alert.alert("Premium", "Upgrade to unlock personalized plans, coach chat, and advanced analytics!")}
-            style={{ marginTop: 12 }}
-          />
-        </View>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push("/upgrade");
+              }}
+            >
+              <LinearGradient
+                colors={["#6A0DAD", "#9B5DE5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.upgradeGradient}
+              >
+                <View style={styles.subRow}>
+                  <Feather name="star" size={20} color="#FFD700" />
+                  <View style={styles.subInfo}>
+                    <Text style={[styles.subTitle, { color: "#fff" }]}>Unlock Premium</Text>
+                    <Text style={[styles.subDesc, { color: "#ffffffbb" }]}>
+                      Full access via Airtel Money · UGX Merchant 7071895
+                    </Text>
+                  </View>
+                  <Feather name="arrow-right" size={18} color="#fff" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )
+        )}
 
         {/* Switch Account */}
         <View style={styles.section}>
@@ -377,6 +418,12 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
   statLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },
   subscriptionCard: {
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
+  },
+  upgradeGradient: {
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 16,
