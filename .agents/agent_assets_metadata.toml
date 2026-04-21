@@ -54,6 +54,24 @@ uri = "file://attached_assets/generated_images/coreher_photo_style_v2.png"
 type = "image"
 title = "photo style fit woman icon v2"
 
+[[generated]]
+id = "DxnXCFPRHtYLchvJOFjyW"
+uri = "file://attached_assets/generated_images/coreher_refined_v1.png"
+type = "image"
+title = "refined iconic silhouette v1"
+
+[[generated]]
+id = "6inS0Pe7QLg6isi5UnyvT"
+uri = "file://attached_assets/generated_images/coreher_refined_v2.png"
+type = "image"
+title = "refined iconic silhouette v2"
+
+[[generated]]
+id = "4XlZA6TySby4p3wM2qRTc"
+uri = "file://attached_assets/generated_images/coreher_refined_v3.png"
+type = "image"
+title = "refined iconic silhouette v3"
+
 [[outputs]]
 id = "_Y8AHZdjTmagHBz3uXGKg"
 uri = "file://attached_assets/generated_images/coreher_app_icon_rounded.png"
@@ -143,3 +161,39 @@ id = "PfNFq8Y1u9Tg-qVBAstXC"
 uri = "file://attached_assets/generated_images/coreher_wordmark.svg"
 type = "image"
 title = "Wordmark — SVG (editable)"
+
+[[outputs]]
+id = "kLWKCVF47FTyJyiZ5wWe_"
+uri = "file://attached_assets/generated_images/coreher_refined_v1_icon.png"
+type = "image"
+title = "Option A — Detailed style, white bg"
+
+[[outputs]]
+id = "gEuTWHUBn_vTxIuO0pmA0"
+uri = "file://attached_assets/generated_images/coreher_refined_v1_icon_dark.png"
+type = "image"
+title = "Option A — Detailed style, purple bg"
+
+[[outputs]]
+id = "2pBHTFiAkezz4U6u5FoJz"
+uri = "file://attached_assets/generated_images/coreher_refined_v1_logo_s.png"
+type = "image"
+title = "Option A — Full Logo Stacked"
+
+[[outputs]]
+id = "2FLs4YdMQScbiPLxzoGV_"
+uri = "file://attached_assets/generated_images/coreher_refined_v2_icon.png"
+type = "image"
+title = "Option B — Bold minimal, white bg"
+
+[[outputs]]
+id = "mOpeAq_rjkML-L51Tr7Bo"
+uri = "file://attached_assets/generated_images/coreher_refined_v2_icon_dark.png"
+type = "image"
+title = "Option B — Bold minimal, purple bg"
+
+[[outputs]]
+id = "vY_WH0On45nVPEVIfibSj"
+uri = "file://attached_assets/generated_images/coreher_refined_v2_logo_s.png"
+type = "image"
+title = "Option B — Full Logo Stacked"
