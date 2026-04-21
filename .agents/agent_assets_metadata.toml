@@ -24,6 +24,24 @@ uri = "file://attached_assets/generated_images/coreher_icon_mark.png"
 type = "image"
 title = "coreher icon mark"
 
+[[generated]]
+id = "iAoJb-gFIY_FTTPmrnJqC"
+uri = "file://attached_assets/generated_images/coreher_abs_v1.png"
+type = "image"
+title = "fit abs icon v1"
+
+[[generated]]
+id = "l7i_Jsu8ZHsujvnUbXAY-"
+uri = "file://attached_assets/generated_images/coreher_abs_v2.png"
+type = "image"
+title = "fit abs icon v2"
+
+[[generated]]
+id = "PwZYbwqhJ_4XKdIk8dD5j"
+uri = "file://attached_assets/generated_images/coreher_abs_v3.png"
+type = "image"
+title = "fit abs icon v3"
+
 [[outputs]]
 id = "_Y8AHZdjTmagHBz3uXGKg"
 uri = "file://attached_assets/generated_images/coreher_app_icon_rounded.png"
@@ -53,3 +71,21 @@ id = "Hw4A_HaW9WfQEzNf9455C"
 uri = "file://attached_assets/generated_images/coreher_logo_stacked.png"
 type = "image"
 title = "Full Logo — Stacked with tagline (transparent background)"
+
+[[outputs]]
+id = "9rxpZpQEwGv1QII9DL-06"
+uri = "file://attached_assets/generated_images/coreher_abs_icon_v1.png"
+type = "image"
+title = "Option 1 — Torso close-up, bold abs highlight"
+
+[[outputs]]
+id = "26RxKhAgMpLEdWKwwJMVL"
+uri = "file://attached_assets/generated_images/coreher_abs_icon_v2.png"
+type = "image"
+title = "Option 2 — Angular athletic style, coral muscle definition"
+
+[[outputs]]
+id = "YA7u3_Jl9kQjTRKcd_5vp"
+uri = "file://attached_assets/generated_images/coreher_abs_icon_v3.png"
+type = "image"
+title = "Option 3 — Full figure, faceless, strong and balanced"
