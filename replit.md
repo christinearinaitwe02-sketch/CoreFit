@@ -45,21 +45,36 @@ A premium mobile fitness platform (Expo React Native) for women aged 25–45 who
 - `SectionHeader.tsx` — Section title with optional action
 - `WorkoutTypeChip.tsx` — Workout type badge with icon and color
 
+#### Auth screens
+| File | Description |
+|------|-------------|
+| `app/auth/login.tsx` | Login screen with email + password, purple gradient header |
+| `app/auth/signup.tsx` | Registration screen with name + email + password |
+
 #### Context / State
 `context/AppContext.tsx` provides:
-- `user` + role switching (client/coach)
+- **Auth**: `authToken`, `isAuthenticated`, `login()`, `register()`, `logout()`
+- `user` + role (client/coach — auto-assigned at registration based on coaches table)
+- JWT stored in AsyncStorage; session restored via `/api/auth/me` on app load
 - `workouts`, `meals`, `waterEntries`, `sleepEntries`, `weightEntries`
 - CRUD operations, all persisted via AsyncStorage
 - `getTodaySummary()`, `getWeekSummary()` for charts/dashboard
 
 ### API Server (`artifacts/api-server/`)
+- `POST /api/auth/register` — Create account (bcrypt password, JWT response; auto-assigns coach role if email in coaches table)
+- `POST /api/auth/login` — Authenticate (bcrypt verify, JWT response)
+- `GET /api/auth/me` — Validate Bearer token, return user
 - `POST /api/estimate-calories` — AI calorie estimation using OpenAI gpt-5-nano
 - `GET /api/health` — Health check
+
+### Database (`lib/db/`)
+Schema tables: `payments`, `coaches`, `users`
+- `users`: id, name, email, passwordHash, role, isPremium, paymentStatus, createdAt
 
 ## Environment Variables
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` — Replit AI Integration proxy URL (set automatically)
 - `AI_INTEGRATIONS_OPENAI_API_KEY` — Replit AI Integration API key (set automatically)
-- `SESSION_SECRET` — Express session secret
+- `SESSION_SECRET` — JWT signing secret (required for auth)
 - `EXPO_PUBLIC_DOMAIN` — Set automatically; used by Expo app to reach the API server
 
 ## Key Dependencies
@@ -68,6 +83,7 @@ A premium mobile fitness platform (Expo React Native) for women aged 25–45 who
 - `@react-native-async-storage/async-storage` — Local persistence
 - `openai` — API server AI calls
 - `express`, `cors`, `pino-http` — API server
+- `bcryptjs`, `jsonwebtoken` — Auth (password hashing + JWT)
 
 ## Design Tokens (constants/colors.ts)
 ```

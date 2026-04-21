@@ -83,7 +83,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, setUser, workouts, meals, waterEntries, sleepEntries, coachProfile } = useApp();
+  const { user, setUser, logout, workouts, meals, waterEntries, sleepEntries, coachProfile } = useApp();
   const demoUsers = buildDemoUsers(coachProfile);
 
   const [editMode, setEditMode] = useState(false);
@@ -408,7 +408,7 @@ export default function ProfileScreen() {
             variant="ghost"
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setUser(null);
+              logout();
             }}
           />
         </View>

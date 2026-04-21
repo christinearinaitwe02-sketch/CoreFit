@@ -94,8 +94,20 @@ export interface DaySummary {
   sleepHours: number;
 }
 
+interface AuthResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AppContextValue {
   user: User | null;
+  authToken: string | null;
+  isAuthenticated: boolean;
+
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (name: string, email: string, password: string) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+
   setUser: (user: User | null) => void;
   setPaymentPending: () => void;
   checkPremiumStatus: () => Promise<void>;
@@ -229,6 +241,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
   const [workouts, setWorkouts] = useState<WorkoutEntry[]>(SEED_WORKOUTS);
   const [meals, setMeals] = useState<MealEntry[]>(SEED_MEALS);
   const [waterEntries, setWaterEntries] = useState<WaterEntry[]>(SEED_WATER);
@@ -239,6 +252,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
 
+  const API_BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
+    ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+    : "";
+
   useEffect(() => {
     loadData();
     fetchCoachProfile();
@@ -246,8 +263,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loadData = async () => {
     try {
-      const savedUser = await AsyncStorage.getItem("user");
-      if (savedUser) setUserState(JSON.parse(savedUser));
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        const ok = await restoreSession(token);
+        if (!ok) {
+          await AsyncStorage.removeItem("authToken");
+        }
+      }
+
       const savedWorkouts = await AsyncStorage.getItem("workouts");
       if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
       const savedMeals = await AsyncStorage.getItem("meals");
@@ -262,70 +285,119 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (savedOnboarded === "true") setHasOnboarded(true);
       const savedChallenge = await AsyncStorage.getItem("challengeStartDate");
       if (savedChallenge) setChallengeStartDate(savedChallenge);
-    } catch (e) {
+    } catch {
       // ignore
     } finally {
       setIsLoading(false);
     }
   };
 
-  const setUser = useCallback(async (u: User | null) => {
+  const restoreSession = async (token: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.user) {
+        setUserState(data.user as User);
+        setAuthToken(token);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const login = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) return { success: false, error: data.error ?? "Login failed." };
+        setUserState(data.user as User);
+        setAuthToken(data.token);
+        await AsyncStorage.setItem("authToken", data.token);
+        return { success: true };
+      } catch {
+        return { success: false, error: "Network error. Check your connection." };
+      }
+    },
+    [API_BASE_URL]
+  );
+
+  const register = useCallback(
+    async (name: string, email: string, password: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) return { success: false, error: data.error ?? "Registration failed." };
+        setUserState(data.user as User);
+        setAuthToken(data.token);
+        await AsyncStorage.setItem("authToken", data.token);
+        return { success: true };
+      } catch {
+        return { success: false, error: "Network error. Check your connection." };
+      }
+    },
+    [API_BASE_URL]
+  );
+
+  const logout = useCallback(async () => {
+    setUserState(null);
+    setAuthToken(null);
+    setHasOnboarded(false);
+    await AsyncStorage.multiRemove(["authToken", "hasOnboarded", "challengeStartDate"]);
+  }, []);
+
+  const setUser = useCallback((u: User | null) => {
     setUserState(u);
-    if (u) await AsyncStorage.setItem("user", JSON.stringify(u));
-    else await AsyncStorage.removeItem("user");
   }, []);
 
   const setPaymentPending = useCallback(() => {
     setUserState((prev) => {
       if (!prev) return prev;
-      const updated = { ...prev, paymentStatus: "pending" as const };
-      AsyncStorage.setItem("user", JSON.stringify(updated));
-      return updated;
+      return { ...prev, paymentStatus: "pending" as const };
     });
   }, []);
-
-  const API_BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
-    ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-    : "";
 
   const fetchCoachProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/coach`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data?.coach?.name) {
-        setCoachProfile(data.coach as CoachProfile);
-      }
+      if (data?.coach?.name) setCoachProfile(data.coach as CoachProfile);
     } catch {
       // keep default
     }
   };
 
   const checkPremiumStatus = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id || !authToken) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/payments/status/${user.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/payments/status/${user.id}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (data.status === "approved") {
-        setUserState((prev) => {
-          if (!prev) return prev;
-          const updated = { ...prev, isPremium: true, paymentStatus: "approved" as const };
-          AsyncStorage.setItem("user", JSON.stringify(updated));
-          return updated;
-        });
+        setUserState((prev) => prev ? { ...prev, isPremium: true, paymentStatus: "approved" as const } : prev);
       } else if (data.status === "pending") {
-        setUserState((prev) => {
-          if (!prev) return prev;
-          const updated = { ...prev, paymentStatus: "pending" as const };
-          AsyncStorage.setItem("user", JSON.stringify(updated));
-          return updated;
-        });
+        setUserState((prev) => prev ? { ...prev, paymentStatus: "pending" as const } : prev);
       }
     } catch {
-      // network error, ignore
+      // ignore
     }
-  }, [user?.id, API_BASE_URL]);
+  }, [user?.id, authToken, API_BASE_URL]);
 
   const addWorkout = useCallback(
     async (workout: Omit<WorkoutEntry, "id">) => {
@@ -438,28 +510,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getTodaySummary = useCallback((): DaySummary => {
     const t = today();
-    const caloriesBurned = workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0);
-    const mealsLogged = meals.filter((m) => m.date === t).length;
-    const waterLitres = waterEntries.find((w) => w.date === t)?.litres ?? 0;
-    const sleepHours = sleepEntries.find((s) => s.date === t)?.hours ?? 0;
-    return { date: t, caloriesBurned, mealsLogged, waterLitres, sleepHours };
+    return {
+      date: t,
+      caloriesBurned: workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0),
+      mealsLogged: meals.filter((m) => m.date === t).length,
+      waterLitres: waterEntries.find((w) => w.date === t)?.litres ?? 0,
+      sleepHours: sleepEntries.find((s) => s.date === t)?.hours ?? 0,
+    };
   }, [workouts, meals, waterEntries, sleepEntries]);
 
   const getWeekSummary = useCallback((): DaySummary[] => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = daysAgo(6 - i);
-      const caloriesBurned = workouts.filter((w) => w.date === d).reduce((s, w) => s + w.calories, 0);
-      const mealsLogged = meals.filter((m) => m.date === d).length;
-      const waterLitres = waterEntries.find((w) => w.date === d)?.litres ?? 0;
-      const sleepHours = sleepEntries.find((s) => s.date === d)?.hours ?? 0;
-      return { date: d, caloriesBurned, mealsLogged, waterLitres, sleepHours };
+      return {
+        date: d,
+        caloriesBurned: workouts.filter((w) => w.date === d).reduce((s, w) => s + w.calories, 0),
+        mealsLogged: meals.filter((m) => m.date === d).length,
+        waterLitres: waterEntries.find((w) => w.date === d)?.litres ?? 0,
+        sleepHours: sleepEntries.find((s) => s.date === d)?.hours ?? 0,
+      };
     });
   }, [workouts, meals, waterEntries, sleepEntries]);
 
   return (
     <AppContext.Provider
       value={{
-        user, setUser, setPaymentPending, checkPremiumStatus, coachProfile,
+        user,
+        authToken,
+        isAuthenticated: !!user && !!authToken,
+        login,
+        register,
+        logout,
+        setUser,
+        setPaymentPending,
+        checkPremiumStatus,
+        coachProfile,
         workouts, addWorkout, removeWorkout,
         meals, addMeal, removeMeal,
         waterEntries, addWaterEntry, getTodayWater,

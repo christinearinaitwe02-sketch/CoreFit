@@ -24,17 +24,26 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { hasOnboarded, isLoading } = useApp();
+  const { isAuthenticated, hasOnboarded, isLoading } = useApp();
   const pathname = usePathname();
+
   if (isLoading) return null;
 
+  const onAuthScreen = pathname.startsWith("/auth/");
   const onOnboarding = pathname === "/onboarding";
-  if (!hasOnboarded && !onOnboarding) {
+
+  if (!isAuthenticated && !onAuthScreen) {
+    return <Redirect href="/auth/login" />;
+  }
+
+  if (isAuthenticated && !hasOnboarded && !onOnboarding) {
     return <Redirect href="/onboarding" />;
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
