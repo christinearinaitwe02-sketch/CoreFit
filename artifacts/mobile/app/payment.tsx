@@ -1,3 +1,4 @@
+import { getApiBase } from "@/utils/api";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -67,7 +68,7 @@ const BENEFITS = [
 
 const COUNTDOWN_SECS = 5 * 60;
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
+const API_BASE = getApiBase();
 
 const WHATSAPP_BASE = "https://wa.me/256702568383";
 const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";

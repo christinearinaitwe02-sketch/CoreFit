@@ -1,3 +1,4 @@
+import { getApiBase } from "@/utils/api";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -19,7 +20,7 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
+const API_BASE = getApiBase();
 
 type Step = "email" | "verify" | "password" | "success";
 

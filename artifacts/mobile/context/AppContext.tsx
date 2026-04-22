@@ -258,7 +258,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
 
-  const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
+  const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ||
+    (typeof window !== "undefined" ? window.location.origin : "");
 
   useEffect(() => {
     loadData();

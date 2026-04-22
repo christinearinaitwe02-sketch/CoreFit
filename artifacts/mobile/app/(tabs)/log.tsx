@@ -1,3 +1,4 @@
+import { getApiBase } from "@/utils/api";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
@@ -33,7 +34,7 @@ const WATER_GOAL = 2.5;
 const WATER_INCREMENTS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
 const SLEEP_HOURS = [4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10];
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
+const API_BASE = getApiBase();
 
 async function fetchCalorieEstimate(
   mealName: string,

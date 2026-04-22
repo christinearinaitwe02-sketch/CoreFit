@@ -1,3 +1,4 @@
+import { getApiBase } from "@/utils/api";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -20,7 +21,7 @@ import { useColors } from "@/hooks/useColors";
 import BackButton from "@/components/BackButton";
 import BottomNav from "@/components/BottomNav";
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || "";
+const API_BASE = getApiBase();
 
 export default function DeleteAccountScreen() {
   const colors = useColors();

@@ -1,3 +1,4 @@
+import { getApiBase } from "@/utils/api";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -18,7 +19,7 @@ import { useColors } from "@/hooks/useColors";
 import BackButton from "@/components/BackButton";
 import BottomNav from "@/components/BottomNav";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
+const BASE_URL = getApiBase();
 
 export default function ChangePasswordScreen() {
   const colors = useColors();
