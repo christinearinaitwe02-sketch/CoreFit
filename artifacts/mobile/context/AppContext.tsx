@@ -203,60 +203,36 @@ const daysAgo = (n: number) => {
   return d.toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
 };
 
-const SEED_WORKOUTS: WorkoutEntry[] = [
-  { id: "w1", date: today(), type: "hiit", duration: 30, calories: 320, notes: "Morning HIIT circuit" },
-  { id: "w2", date: daysAgo(1), type: "strength", duration: 45, calories: 280 },
-  { id: "w3", date: daysAgo(2), type: "jogging", duration: 35, calories: 339, notes: "Evening jog" },
-  { id: "w4", date: daysAgo(3), type: "walking", duration: 45, calories: 149, notes: "Morning walk" },
-  { id: "w5", date: daysAgo(5), type: "cycling", duration: 50, calories: 400 },
-];
-
-const SEED_MEALS: MealEntry[] = [
-  { id: "m1", date: today(), category: "breakfast", name: "Oatmeal with berries", calories: 320 },
-  { id: "m2", date: today(), category: "lunch", name: "Grilled chicken salad", calories: 450 },
-  { id: "m3", date: daysAgo(1), category: "breakfast", name: "Avocado toast", calories: 380 },
-  { id: "m4", date: daysAgo(1), category: "lunch", name: "Quinoa bowl", calories: 520 },
-  { id: "m5", date: daysAgo(1), category: "dinner", name: "Salmon with veggies", calories: 580 },
-];
-
-const SEED_WATER: WaterEntry[] = [
-  { id: "wt1", date: today(), litres: 1.25 },
-  { id: "wt2", date: daysAgo(1), litres: 2.0 },
-  { id: "wt3", date: daysAgo(2), litres: 1.75 },
-  { id: "wt4", date: daysAgo(3), litres: 1.5 },
-];
-
-const SEED_SLEEP: SleepEntry[] = [
-  { id: "sl1", date: today(), hours: 7.5, quality: "good" },
-  { id: "sl2", date: daysAgo(1), hours: 8, quality: "excellent" },
-  { id: "sl3", date: daysAgo(2), hours: 6.5, quality: "fair" },
-  { id: "sl4", date: daysAgo(3), hours: 7, quality: "good" },
-  { id: "sl5", date: daysAgo(4), hours: 9, quality: "excellent" },
-];
-
-const SEED_WEIGHTS: WeightEntry[] = [
-  { date: daysAgo(30), kg: 67.2 },
-  { date: daysAgo(21), kg: 66.5 },
-  { date: daysAgo(14), kg: 65.8 },
-  { date: daysAgo(7), kg: 65.1 },
-  { date: daysAgo(1), kg: 64.6 },
-];
+function storageKeys(uid: string) {
+  return {
+    workouts: `${uid}_workouts`,
+    meals: `${uid}_meals`,
+    water: `${uid}_waterEntries`,
+    sleep: `${uid}_sleepEntries`,
+    weight: `${uid}_weightEntries`,
+    onboarded: `${uid}_hasOnboarded`,
+    challengeStart: `${uid}_challengeStartDate`,
+    completedDays: `${uid}_completedChallengeDays`,
+  };
+}
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
-  const [workouts, setWorkouts] = useState<WorkoutEntry[]>(SEED_WORKOUTS);
-  const [meals, setMeals] = useState<MealEntry[]>(SEED_MEALS);
-  const [waterEntries, setWaterEntries] = useState<WaterEntry[]>(SEED_WATER);
-  const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>(SEED_SLEEP);
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>(SEED_WEIGHTS);
+  const [workouts, setWorkouts] = useState<WorkoutEntry[]>([]);
+  const [meals, setMeals] = useState<MealEntry[]>([]);
+  const [waterEntries, setWaterEntries] = useState<WaterEntry[]>([]);
+  const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>([]);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [challengeStartDate, setChallengeStartDate] = useState<string | null>(null);
   const [completedChallengeDays, setCompletedChallengeDays] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
+
+  const userIdRef = useRef<string | null>(null);
 
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ||
     (typeof window !== "undefined" ? window.location.origin : "");
@@ -266,32 +242,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchCoachProfile();
   }, []);
 
+  const loadUserData = useCallback(async (uid: string) => {
+    try {
+      const k = storageKeys(uid);
+      const pairs = await AsyncStorage.multiGet([
+        k.workouts, k.meals, k.water, k.sleep, k.weight,
+        k.onboarded, k.challengeStart, k.completedDays,
+      ]);
+      const map = Object.fromEntries(pairs.map(([key, val]) => [key, val]));
+      setWorkouts(map[k.workouts] ? JSON.parse(map[k.workouts]!) : []);
+      setMeals(map[k.meals] ? JSON.parse(map[k.meals]!) : []);
+      setWaterEntries(map[k.water] ? JSON.parse(map[k.water]!) : []);
+      setSleepEntries(map[k.sleep] ? JSON.parse(map[k.sleep]!) : []);
+      setWeightEntries(map[k.weight] ? JSON.parse(map[k.weight]!) : []);
+      setHasOnboarded(map[k.onboarded] === "true");
+      setChallengeStartDate(map[k.challengeStart] ?? null);
+      setCompletedChallengeDays(map[k.completedDays] ? JSON.parse(map[k.completedDays]!) : []);
+    } catch {
+      // on error, leave state empty — never show another user's data
+    }
+  }, []);
+
+  const clearUserData = useCallback(() => {
+    setWorkouts([]);
+    setMeals([]);
+    setWaterEntries([]);
+    setSleepEntries([]);
+    setWeightEntries([]);
+    setHasOnboarded(false);
+    setChallengeStartDate(null);
+    setCompletedChallengeDays([]);
+  }, []);
+
   const loadData = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
       if (token) {
-        const ok = await restoreSession(token);
-        if (!ok) {
+        const uid = await restoreSession(token);
+        if (uid) {
+          userIdRef.current = uid;
+          await loadUserData(uid);
+        } else {
           await AsyncStorage.removeItem("authToken");
         }
       }
-
-      const savedWorkouts = await AsyncStorage.getItem("workouts");
-      if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
-      const savedMeals = await AsyncStorage.getItem("meals");
-      if (savedMeals) setMeals(JSON.parse(savedMeals));
-      const savedWater = await AsyncStorage.getItem("waterEntries");
-      if (savedWater) setWaterEntries(JSON.parse(savedWater));
-      const savedSleep = await AsyncStorage.getItem("sleepEntries");
-      if (savedSleep) setSleepEntries(JSON.parse(savedSleep));
-      const savedWeight = await AsyncStorage.getItem("weightEntries");
-      if (savedWeight) setWeightEntries(JSON.parse(savedWeight));
-      const savedOnboarded = await AsyncStorage.getItem("hasOnboarded");
-      if (savedOnboarded === "true") setHasOnboarded(true);
-      const savedChallenge = await AsyncStorage.getItem("challengeStartDate");
-      if (savedChallenge) setChallengeStartDate(savedChallenge);
-      const savedCompletedDays = await AsyncStorage.getItem("completedChallengeDays");
-      if (savedCompletedDays) setCompletedChallengeDays(JSON.parse(savedCompletedDays));
     } catch {
       // ignore
     } finally {
@@ -299,7 +293,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const restoreSession = async (token: string): Promise<boolean> => {
+  const restoreSession = async (token: string): Promise<string | null> => {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
@@ -308,16 +302,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         signal: controller.signal,
       });
       clearTimeout(timer);
-      if (!res.ok) return false;
+      if (!res.ok) return null;
       const data = await res.json();
       if (data.user) {
         setUserState(data.user as User);
         setAuthToken(token);
-        return true;
+        return data.user.id as string;
       }
-      return false;
+      return null;
     } catch {
-      return false;
+      return null;
     }
   };
 
@@ -331,15 +325,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
         const data = await res.json();
         if (!res.ok) return { success: false, error: data.error ?? "Login failed." };
-        setUserState(data.user as User);
+        const loggedInUser = data.user as User;
+        clearUserData();
+        setUserState(loggedInUser);
         setAuthToken(data.token);
+        userIdRef.current = loggedInUser.id;
         await AsyncStorage.setItem("authToken", data.token);
+        await loadUserData(loggedInUser.id);
         return { success: true };
       } catch {
         return { success: false, error: "Network error. Check your connection." };
       }
     },
-    [API_BASE_URL]
+    [API_BASE_URL, clearUserData, loadUserData]
   );
 
   const register = useCallback(
@@ -352,23 +350,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
         const data = await res.json();
         if (!res.ok) return { success: false, error: data.error ?? "Registration failed." };
-        setUserState(data.user as User);
+        const newUser = data.user as User;
+        clearUserData();
+        setUserState(newUser);
         setAuthToken(data.token);
+        userIdRef.current = newUser.id;
         await AsyncStorage.setItem("authToken", data.token);
         return { success: true };
       } catch {
         return { success: false, error: "Network error. Check your connection." };
       }
     },
-    [API_BASE_URL]
+    [API_BASE_URL, clearUserData]
   );
 
   const logout = useCallback(async () => {
+    const uid = userIdRef.current;
+    userIdRef.current = null;
     setUserState(null);
     setAuthToken(null);
-    setHasOnboarded(false);
-    await AsyncStorage.multiRemove(["authToken", "hasOnboarded", "challengeStartDate"]);
-  }, []);
+    clearUserData();
+    const keysToRemove = ["authToken"];
+    if (uid) {
+      const k = storageKeys(uid);
+      keysToRemove.push(k.onboarded, k.challengeStart);
+    }
+    await AsyncStorage.multiRemove(keysToRemove);
+  }, [clearUserData]);
 
   const setUser = useCallback((u: User | null) => {
     setUserState(u);
@@ -423,44 +431,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addWorkout = useCallback(
     async (workout: Omit<WorkoutEntry, "id">) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const entry: WorkoutEntry = { ...workout, id: generateId() };
       const updated = [entry, ...workouts];
       setWorkouts(updated);
-      await AsyncStorage.setItem("workouts", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).workouts, JSON.stringify(updated));
     },
     [workouts]
   );
 
   const removeWorkout = useCallback(
     async (id: string) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const updated = workouts.filter((w) => w.id !== id);
       setWorkouts(updated);
-      await AsyncStorage.setItem("workouts", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).workouts, JSON.stringify(updated));
     },
     [workouts]
   );
 
   const addMeal = useCallback(
     async (meal: Omit<MealEntry, "id">) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const entry: MealEntry = { ...meal, id: generateId() };
       const updated = [entry, ...meals];
       setMeals(updated);
-      await AsyncStorage.setItem("meals", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).meals, JSON.stringify(updated));
     },
     [meals]
   );
 
   const removeMeal = useCallback(
     async (id: string) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const updated = meals.filter((m) => m.id !== id);
       setMeals(updated);
-      await AsyncStorage.setItem("meals", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).meals, JSON.stringify(updated));
     },
     [meals]
   );
 
   const addWaterEntry = useCallback(
     async (date: string, litres: number) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const existing = waterEntries.find((w) => w.date === date);
       let updated: WaterEntry[];
       if (existing) {
@@ -469,7 +487,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updated = [{ id: generateId(), date, litres }, ...waterEntries];
       }
       setWaterEntries(updated);
-      await AsyncStorage.setItem("waterEntries", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).water, JSON.stringify(updated));
     },
     [waterEntries]
   );
@@ -481,6 +499,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addSleepEntry = useCallback(
     async (entry: Omit<SleepEntry, "id">) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const existing = sleepEntries.find((s) => s.date === entry.date);
       let updated: SleepEntry[];
       if (existing) {
@@ -491,13 +511,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updated = [{ ...entry, id: generateId() }, ...sleepEntries];
       }
       setSleepEntries(updated);
-      await AsyncStorage.setItem("sleepEntries", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).sleep, JSON.stringify(updated));
     },
     [sleepEntries]
   );
 
   const addWeightEntry = useCallback(
     async (kg: number) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
       const t = today();
       const existing = weightEntries.find((w) => w.date === t);
       let updated: WeightEntry[];
@@ -507,28 +529,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updated = [...weightEntries, { date: t, kg }];
       }
       setWeightEntries(updated);
-      await AsyncStorage.setItem("weightEntries", JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKeys(uid).weight, JSON.stringify(updated));
     },
     [weightEntries]
   );
 
   const completeOnboarding = useCallback(async () => {
+    const uid = userIdRef.current;
     setHasOnboarded(true);
-    await AsyncStorage.setItem("hasOnboarded", "true");
+    if (uid) await AsyncStorage.setItem(storageKeys(uid).onboarded, "true");
   }, []);
 
   const startChallenge = useCallback(async () => {
+    const uid = userIdRef.current;
     const t = today();
     setChallengeStartDate(t);
-    await AsyncStorage.setItem("challengeStartDate", t);
+    if (uid) await AsyncStorage.setItem(storageKeys(uid).challengeStart, t);
   }, []);
 
   const markDayComplete = useCallback(
     async (day: number) => {
+      const uid = userIdRef.current;
       if (completedChallengeDays.includes(day)) return;
       const updated = [...completedChallengeDays, day];
       setCompletedChallengeDays(updated);
-      await AsyncStorage.setItem("completedChallengeDays", JSON.stringify(updated));
+      if (uid) await AsyncStorage.setItem(storageKeys(uid).completedDays, JSON.stringify(updated));
     },
     [completedChallengeDays]
   );
