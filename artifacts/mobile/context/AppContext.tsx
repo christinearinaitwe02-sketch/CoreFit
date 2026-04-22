@@ -91,6 +91,7 @@ export interface Client {
 export interface DaySummary {
   date: string;
   caloriesBurned: number;
+  caloriesConsumed: number;
   mealsLogged: number;
   waterLitres: number;
   sleepHours: number;
@@ -568,10 +569,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getTodaySummary = useCallback((): DaySummary => {
     const t = today();
+    const todayMeals = meals.filter((m) => m.date === t);
     return {
       date: t,
       caloriesBurned: workouts.filter((w) => w.date === t).reduce((s, w) => s + w.calories, 0),
-      mealsLogged: meals.filter((m) => m.date === t).length,
+      caloriesConsumed: todayMeals.reduce((s, m) => s + (m.calories ?? 0), 0),
+      mealsLogged: todayMeals.length,
       waterLitres: waterEntries.find((w) => w.date === t)?.litres ?? 0,
       sleepHours: sleepEntries.find((s) => s.date === t)?.hours ?? 0,
     };
@@ -580,10 +583,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getWeekSummary = useCallback((): DaySummary[] => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = daysAgo(6 - i);
+      const dayMeals = meals.filter((m) => m.date === d);
       return {
         date: d,
         caloriesBurned: workouts.filter((w) => w.date === d).reduce((s, w) => s + w.calories, 0),
-        mealsLogged: meals.filter((m) => m.date === d).length,
+        caloriesConsumed: dayMeals.reduce((s, m) => s + (m.calories ?? 0), 0),
+        mealsLogged: dayMeals.length,
         waterLitres: waterEntries.find((w) => w.date === d)?.litres ?? 0,
         sleepHours: sleepEntries.find((s) => s.date === d)?.hours ?? 0,
       };
