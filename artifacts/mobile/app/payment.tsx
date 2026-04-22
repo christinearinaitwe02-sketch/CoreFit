@@ -146,6 +146,7 @@ export default function PaymentScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user?.id ?? "anonymous",
+          userEmail: user?.email ?? "",
           fullName: fullName.trim(),
           phone: phone.trim(),
           amount: Number(amount),
@@ -158,6 +159,7 @@ export default function PaymentScreen() {
       setPaymentPending();
       if (timerRef.current) clearInterval(timerRef.current);
       setStep("success");
+      setTimeout(() => router.replace("/(tabs)" as any), 4000);
     } catch {
       Alert.alert("Error", "Could not connect to server. Please check your connection.");
     } finally {
@@ -584,9 +586,9 @@ export default function PaymentScreen() {
               >
                 <Feather name="check" size={40} color="#fff" />
               </LinearGradient>
-              <Text style={[styles.successTitle, { color: colors.foreground }]}>Thank You!</Text>
+              <Text style={[styles.successTitle, { color: colors.foreground }]}>Payment Submitted!</Text>
               <Text style={[styles.successMsg, { color: colors.mutedForeground }]}>
-                Payment received and pending confirmation. You will be activated shortly.
+                Payment submitted successfully. Awaiting approval from your coach. You'll be redirected to Home shortly.
               </Text>
               <View style={[styles.infoBox, { backgroundColor: colors.card }]}>
                 <Feather name="clock" size={16} color="#F59E0B" />

@@ -1,9 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppState } from "react-native";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -402,6 +404,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [user?.id, authToken, API_BASE_URL]);
+
+  const appStateRef = useRef(AppState.currentState);
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (nextState) => {
+      if (appStateRef.current !== "active" && nextState === "active") {
+        checkPremiumStatus();
+      }
+      appStateRef.current = nextState;
+    });
+    return () => sub.remove();
+  }, [checkPremiumStatus]);
 
   const addWorkout = useCallback(
     async (workout: Omit<WorkoutEntry, "id">) => {

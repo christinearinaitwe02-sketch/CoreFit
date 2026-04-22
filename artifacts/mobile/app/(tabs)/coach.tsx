@@ -32,6 +32,7 @@ function getAvatarColor(name: string) {
 interface Payment {
   id: string;
   userId: string;
+  userEmail?: string;
   fullName: string;
   phone: string;
   amount: number;
@@ -95,6 +96,9 @@ function PaymentCard({
         </View>
         <View style={styles.paymentInfo}>
           <Text style={[styles.paymentName, { color: colors.foreground }]}>{payment.fullName}</Text>
+          {payment.userEmail ? (
+            <Text style={[styles.paymentPhone, { color: colors.primary }]}>{payment.userEmail}</Text>
+          ) : null}
           <Text style={[styles.paymentPhone, { color: colors.mutedForeground }]}>{payment.phone}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + "20" }]}>

@@ -3,6 +3,7 @@ import { pgTable, text, real } from "drizzle-orm/pg-core";
 export const paymentsTable = pgTable("payments", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),
+  userEmail: text("user_email"),
   fullName: text("full_name").notNull(),
   phone: text("phone").notNull(),
   amount: real("amount").notNull(),

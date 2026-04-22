@@ -10,10 +10,17 @@ function generateId() {
 
 router.post("/payments", async (req, res) => {
   try {
-    const { userId, fullName, phone, amount, transactionId } = req.body;
+    const { userId, userEmail, fullName, phone, amount, transactionId } = req.body;
     if (!userId || !fullName || !phone || !amount || !transactionId) {
       return res.status(400).json({ error: "All fields are required." });
     }
+
+    let resolvedEmail = userEmail ?? null;
+    if (!resolvedEmail && userId !== "anonymous") {
+      const userRows = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+      if (userRows.length > 0) resolvedEmail = userRows[0].email;
+    }
+
     const existing = await db
       .select()
       .from(paymentsTable)
@@ -27,6 +34,7 @@ router.post("/payments", async (req, res) => {
       .values({
         id: generateId(),
         userId,
+        userEmail: resolvedEmail,
         fullName,
         phone,
         amount: Number(amount),
