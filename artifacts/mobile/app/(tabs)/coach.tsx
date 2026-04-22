@@ -1,4 +1,5 @@
 import { getApiBase } from "@/utils/api";
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -197,7 +198,7 @@ export default function CoachScreen() {
   }, []);
 
   useEffect(() => {
-    if (user?.role !== "coach") return;
+    if (!isElevated(user?.role)) return;
     fetchPayments();
     const interval = setInterval(() => fetchPayments(true), 30_000);
     return () => clearInterval(interval);
@@ -229,7 +230,7 @@ export default function CoachScreen() {
 
   const pendingPayments = payments.filter((p) => p.status === "pending");
 
-  if (user?.role !== "coach") {
+  if (!isElevated(user?.role)) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <View style={[styles.center, { paddingTop: topPad + 60 }]}>

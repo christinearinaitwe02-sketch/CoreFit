@@ -54,7 +54,7 @@ A premium mobile fitness platform (Expo React Native) for women aged 25–45 who
 #### Context / State
 `context/AppContext.tsx` provides:
 - **Auth**: `authToken`, `isAuthenticated`, `login()`, `register()`, `logout()`
-- `user` + role (client/coach — auto-assigned at registration based on coaches table)
+- `user` + role (client/coach/admin — auto-assigned at registration; admin set manually in DB)
 - JWT stored in AsyncStorage; session restored via `/api/auth/me` on app load
 - `workouts`, `meals`, `waterEntries`, `sleepEntries`, `weightEntries`
 - CRUD operations, all persisted via AsyncStorage
@@ -69,7 +69,9 @@ A premium mobile fitness platform (Expo React Native) for women aged 25–45 who
 
 ### Database (`lib/db/`)
 Schema tables: `payments`, `coaches`, `users`
-- `users`: id, name, email, passwordHash, role, isPremium, paymentStatus, createdAt
+- `users`: id, name, email, passwordHash, role (`client`|`coach`|`admin`), isPremium, paymentStatus, createdAt
+- Admin account: `christine.arinaitwe02@gmail.com` — role set to `admin` in DB, bypasses all premium gates, sees Clients dashboard tab
+- Role utility: `artifacts/mobile/utils/roles.ts` — `isElevated(role)` returns true for `coach` or `admin`
 
 ## Environment Variables
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` — Replit AI Integration proxy URL (set automatically)

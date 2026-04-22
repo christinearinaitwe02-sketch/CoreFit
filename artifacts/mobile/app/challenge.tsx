@@ -1,3 +1,4 @@
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -256,7 +257,7 @@ export default function ChallengeScreen() {
 
   const currentMeta = PHASE_META[activePhase];
 
-  if (!user?.isPremium && user?.role !== "coach") {
+  if (!user?.isPremium && !isElevated(user?.role)) {
     return (
       <View style={[styles.gateWrap, { backgroundColor: colors.background }]}>
         <View style={[styles.gateBack, { top: topPad + 8 }]}>

@@ -8,6 +8,7 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { isElevated } from "@/utils/roles";
 
 function NativeTabLayout({ isCoach }: { isCoach: boolean }) {
   return (
@@ -166,7 +167,7 @@ function ClassicTabLayout({ isCoach }: { isCoach: boolean }) {
 
 export default function TabLayout() {
   const { user } = useApp();
-  const isCoach = user?.role === "coach";
+  const isCoach = isElevated(user?.role);
   if (isLiquidGlassAvailable()) return <NativeTabLayout isCoach={isCoach} />;
   return <ClassicTabLayout isCoach={isCoach} />;
 }

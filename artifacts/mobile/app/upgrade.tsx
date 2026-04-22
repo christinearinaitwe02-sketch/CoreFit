@@ -1,3 +1,4 @@
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -46,7 +47,7 @@ export default function UpgradeScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const hasPendingPayment = user?.paymentStatus === "pending";
-  const isApproved = user?.paymentStatus === "approved" || user?.isPremium || user?.role === "coach";
+  const isApproved = user?.paymentStatus === "approved" || user?.isPremium || isElevated(user?.role);
 
   const handleCheckStatus = async () => {
     setChecking(true);

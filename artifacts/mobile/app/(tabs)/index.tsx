@@ -1,3 +1,4 @@
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -63,7 +64,7 @@ export default function DashboardScreen() {
   } = useApp();
   const goals = useGoals();
   const challengeDay = getChallengeDay();
-  const showPremiumBanner = !user?.isPremium && user?.role !== "coach";
+  const showPremiumBanner = !user?.isPremium && !isElevated(user?.role);
   const [showChallengeGate, setShowChallengeGate] = useState(false);
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
@@ -227,7 +228,7 @@ export default function DashboardScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => {
-              if (!user?.isPremium && user?.role !== "coach") {
+              if (!user?.isPremium && !isElevated(user?.role)) {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 setShowChallengeGate(true);
                 return;

@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 
-export type UserRole = "client" | "coach";
+export type UserRole = "client" | "coach" | "admin";
 
 export interface CoachProfile {
   id: string;

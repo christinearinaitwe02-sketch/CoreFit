@@ -1,3 +1,4 @@
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -49,7 +50,7 @@ export default function WorkoutVideoScreen() {
   const catLabel    = CATEGORY_LABEL[workout.category] ?? "Workout";
   const topPad      = Platform.OS === "web" ? 67 : insets.top;
   const isFree      = workout.id === FREE_PREVIEW_ID;
-  const isLocked    = !user?.isPremium && user?.role !== "coach" && !isFree;
+  const isLocked    = !user?.isPremium && !isElevated(user?.role) && !isFree;
 
   const [completed, setCompleted] = useState(false);
   const [scale]    = useState(new Animated.Value(1));

@@ -1,3 +1,4 @@
+import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -256,7 +257,7 @@ export default function WorkoutScreen() {
                 {guided.map((w) => {
                   const lc = LEVEL_COLOR[w.level] ?? "#9B5DE5";
                   const isFree = w.id === FREE_PREVIEW_ID;
-                  const isLocked = !user?.isPremium && user?.role !== "coach" && !isFree;
+                  const isLocked = !user?.isPremium && !isElevated(user?.role) && !isFree;
 
                   return (
                     <TouchableOpacity

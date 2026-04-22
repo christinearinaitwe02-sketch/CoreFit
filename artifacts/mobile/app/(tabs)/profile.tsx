@@ -1,3 +1,4 @@
+import { isElevated, roleLabel } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -90,7 +91,7 @@ export default function ProfileScreen() {
   const [name, setName] = useState(user?.name ?? "");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const isCoach = user?.role === "coach";
+  const isCoach = isElevated(user?.role);
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -138,19 +139,19 @@ export default function ProfileScreen() {
               <View
                 style={[
                   styles.demoAvatar,
-                  { backgroundColor: u.role === "coach" ? colors.primaryLight : colors.peachLight },
+                  { backgroundColor: isElevated(u.role) ? colors.primaryLight : colors.peachLight },
                 ]}
               >
                 <Feather
-                  name={u.role === "coach" ? "briefcase" : "user"}
+                  name={isElevated(u.role) ? "briefcase" : "user"}
                   size={24}
-                  color={u.role === "coach" ? colors.primary : colors.peach}
+                  color={isElevated(u.role) ? colors.primary : colors.peach}
                 />
               </View>
               <View style={styles.demoInfo}>
                 <Text style={[styles.demoName, { color: colors.foreground }]}>{u.name}</Text>
                 <Text style={[styles.demoRole, { color: colors.mutedForeground }]}>
-                  {u.role === "coach" ? "Fitness Coach" : "Client"}
+                  {roleLabel(u.role)}
                 </Text>
               </View>
               <Feather name="arrow-right" size={20} color={colors.mutedForeground} />
@@ -419,14 +420,14 @@ export default function ProfileScreen() {
                   style={[styles.rowCard, { backgroundColor: colors.card }]}
                 >
                   <Feather
-                    name={u.role === "coach" ? "briefcase" : "user"}
+                    name={isElevated(u.role) ? "briefcase" : "user"}
                     size={18}
                     color={colors.mutedForeground}
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.rowLabel, { color: colors.foreground }]}>{u.name}</Text>
                     <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>
-                      {u.role === "coach" ? "Coach" : "Client"}
+                      {roleLabel(u.role)}
                     </Text>
                   </View>
                   <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
