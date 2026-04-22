@@ -91,7 +91,7 @@ export default function OnboardingScreen() {
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.brand}>CoreHer Fitness</Text>
+          <Text style={styles.brand}>app-pure fitness</Text>
           <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
         </LinearGradient>
 
@@ -101,7 +101,7 @@ export default function OnboardingScreen() {
             Welcome to your transformation
           </Text>
           <Text style={[styles.descText, { color: colors.mutedForeground }]}>
-            CoreHer Fitness is your all-in-one transformation platform designed for women ready to lose belly fat, track their lifestyle, and rebuild confidence.
+            app-pure fitness is your all-in-one transformation platform designed for women ready to lose belly fat, track their lifestyle, and rebuild confidence.
           </Text>
           <Text style={[styles.descText, { color: colors.mutedForeground, marginTop: 10 }]}>
             Track your workouts, meals, water intake, and sleep all in one place, while following structured programs like the 90-Day Transformation Challenge.

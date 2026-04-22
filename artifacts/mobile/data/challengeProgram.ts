@@ -114,7 +114,7 @@ const PHASE3_MOTIVATIONS = [
   "Day 87 — three days. Your mind and body have never been more aligned.",
   "Two days to the finish line. You are not the same person who started.",
   "Day 89 — tomorrow is the day. Sleep well. Dream of crossing the finish line.",
-  "Day 90. YOU DID IT. 90 days of courage, commitment, and transformation. You are CoreHer.",
+  "Day 90. YOU DID IT. 90 days of courage, commitment, and transformation. You are app-pure.",
 ];
 
 const PHASE1_DAYS: DayBlueprint[] = [

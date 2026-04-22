@@ -92,7 +92,7 @@ export default function UpgradeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <BackButton color={WHITE} style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
-          <Text style={styles.headerTitle}>CoreHer Premium</Text>
+          <Text style={styles.headerTitle}>app-pure Premium</Text>
           <View style={{ width: 36 }} />
         </View>
 

@@ -47,7 +47,7 @@ export default function SupportScreen() {
 
   const whatsappNumber = coachProfile.phone.replace(/\D/g, "");
   const whatsappUrl = `https://wa.me/${whatsappNumber}`;
-  const defaultMsg = `Hello ${coachProfile.name}, I need help with CoreHer Fitness.`;
+  const defaultMsg = `Hello ${coachProfile.name}, I need help with app-pure fitness.`;
 
   const openWhatsApp = async (message?: string) => {
     const url = `${whatsappUrl}?text=${encodeURIComponent(message ?? defaultMsg)}`;

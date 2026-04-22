@@ -79,7 +79,7 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                 <Text style={[styles.sub, { color: colors.mutedForeground }]}>
                   {featureName
                     ? `Unlock Premium to access the ${featureName}.`
-                    : "Unlock your full transformation journey with CoreHer Premium."}
+                    : "Unlock your full transformation journey with app-pure Premium."}
                 </Text>
 
                 {/* Benefits */}
