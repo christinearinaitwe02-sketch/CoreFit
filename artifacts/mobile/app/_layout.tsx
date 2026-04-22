@@ -24,13 +24,14 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { isAuthenticated, hasOnboarded, isLoading } = useApp();
+  const { isAuthenticated, hasOnboarded, isLoading, user } = useApp();
   const pathname = usePathname();
 
   if (isLoading) return null;
 
   const onAuthScreen = pathname.startsWith("/auth/");
   const onOnboarding = pathname === "/onboarding";
+  const onAdminScreen = pathname.startsWith("/admin");
 
   if (!isAuthenticated && !onAuthScreen) {
     return <Redirect href="/auth/login" />;
@@ -40,12 +41,23 @@ function RootLayoutNav() {
     return <Redirect href="/onboarding" />;
   }
 
+  // Role-based routing: admins go to admin dashboard
+  if (isAuthenticated && hasOnboarded && user?.role === "admin" && !onAdminScreen) {
+    console.log("USER ROLE:", user?.role, "→ redirecting to /admin/dashboard");
+    return <Redirect href="/admin/dashboard" />;
+  }
+
+  if (isAuthenticated && hasOnboarded) {
+    console.log("USER ROLE:", user?.role);
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="auth/login" options={{ headerShown: false }} />
       <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="admin/dashboard" options={{ headerShown: false }} />
       <Stack.Screen
         name="client/[id]"
         options={{ headerShown: false, presentation: "card" }}
