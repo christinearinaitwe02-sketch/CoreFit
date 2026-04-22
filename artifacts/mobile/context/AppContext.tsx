@@ -300,9 +300,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const restoreSession = async (token: string): Promise<boolean> => {
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
+      clearTimeout(timer);
       if (!res.ok) return false;
       const data = await res.json();
       if (data.user) {
