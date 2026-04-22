@@ -27,10 +27,12 @@ async function getResendClient(): Promise<{ client: Resend; fromEmail: string }>
     throw new Error("Resend not connected or missing api_key.");
   }
 
-  return {
-    client: new Resend(settings.api_key),
-    fromEmail: settings.from_email || "noreply@corehr.app",
-  };
+  // Use onboarding@resend.dev — required when no custom domain is verified.
+  // Once a domain is verified in Resend, update this to: `noreply@<verified-domain>`
+  const fromEmail = "onboarding@resend.dev";
+  console.log(`[email] Resend client ready. from=${fromEmail}`);
+
+  return { client: new Resend(settings.api_key), fromEmail };
 }
 
 export async function sendPasswordResetEmail(
@@ -38,9 +40,10 @@ export async function sendPasswordResetEmail(
   toName: string,
   code: string
 ): Promise<void> {
+  console.log(`[email] Sending password reset code to ${toEmail} (name: ${toName})`);
   const { client, fromEmail } = await getResendClient();
 
-  await client.emails.send({
+  const result = await client.emails.send({
     from: `CoreHer Fitness <${fromEmail}>`,
     to: toEmail,
     subject: "Your CoreHer Password Reset Code",
@@ -98,4 +101,11 @@ export async function sendPasswordResetEmail(
 </html>
     `.trim(),
   });
+
+  if (result.error) {
+    console.error(`[email] Resend rejected email to ${toEmail}:`, result.error);
+    throw new Error(result.error.message ?? "Email delivery failed.");
+  }
+
+  console.log(`[email] Reset email delivered successfully. id=${result.data?.id} to=${toEmail}`);
 }
