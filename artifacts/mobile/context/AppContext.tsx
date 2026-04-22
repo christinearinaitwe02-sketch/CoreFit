@@ -482,7 +482,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const existing = waterEntries.find((w) => w.date === date);
       let updated: WaterEntry[];
       if (existing) {
-        updated = waterEntries.map((w) => (w.date === date ? { ...w, litres } : w));
+        const newTotal = Math.round((existing.litres + litres) * 100) / 100;
+        updated = waterEntries.map((w) => (w.date === date ? { ...w, litres: newTotal } : w));
       } else {
         updated = [{ id: generateId(), date, litres }, ...waterEntries];
       }
