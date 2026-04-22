@@ -340,7 +340,12 @@ export default function AdminDashboard() {
             </View>
           ) : (
             filteredClients.map((c) => (
-              <View key={c.id} style={[styles.clientCard, { backgroundColor: colors.card }]}>
+              <TouchableOpacity
+                key={c.id}
+                activeOpacity={0.75}
+                onPress={() => { Haptics.selectionAsync(); router.push(`/admin/client/${c.id}`); }}
+                style={[styles.clientCard, { backgroundColor: colors.card }]}
+              >
                 <View style={[styles.avatar, { backgroundColor: avatarColor(c.name) + "22" }]}>
                   <Text style={[styles.avatarText, { color: avatarColor(c.name) }]}>{initials(c.name)}</Text>
                 </View>
@@ -357,15 +362,9 @@ export default function AdminDashboard() {
                   {c.weight ? (
                     <Text style={[styles.clientWeight, { color: colors.mutedForeground }]}>{c.weight} kg</Text>
                   ) : null}
-                  <TouchableOpacity
-                    onPress={() => { Haptics.selectionAsync(); router.push(`/admin/client/${c.id}`); }}
-                    style={[styles.detailsBtn, { backgroundColor: colors.primaryLight }]}
-                  >
-                    <Text style={[styles.detailsBtnText, { color: colors.primary }]}>View Details</Text>
-                    <Feather name="chevron-right" size={13} color={colors.primary} />
-                  </TouchableOpacity>
+                  <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )
         )}
