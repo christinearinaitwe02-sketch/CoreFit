@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { sendPasswordResetEmail } from "../lib/email.js";
 
 const router = Router();
 
@@ -124,45 +123,11 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-router.post("/auth/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body as { email?: string };
-    if (!email?.trim()) {
-      return res.status(400).json({ error: "Email is required." });
-    }
-
-    const normalEmail = email.trim().toLowerCase();
-    const rows = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.email, normalEmail))
-      .limit(1);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No account found with that email address." });
-    }
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    const codeHash = await bcrypt.hash(code, 10);
-
-    await db
-      .update(usersTable)
-      .set({ resetToken: codeHash, resetTokenExpiry: expiry })
-      .where(eq(usersTable.email, normalEmail));
-
-    try {
-      await sendPasswordResetEmail(normalEmail, rows[0].name, code);
-    } catch (emailErr) {
-      console.error("forgot-password email send error", emailErr);
-      return res.status(500).json({ error: "Failed to send reset email. Please try again." });
-    }
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("forgot-password error", err);
-    return res.status(500).json({ error: "Server error. Please try again." });
-  }
+router.post("/auth/forgot-password", async (_req, res) => {
+  return res.status(503).json({
+    error:
+      "Password reset is temporarily unavailable. Please contact your coach on WhatsApp for account help.",
+  });
 });
 
 router.post("/auth/verify-reset-code", async (req, res) => {
