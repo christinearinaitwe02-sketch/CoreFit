@@ -438,7 +438,7 @@ export default function DashboardScreen() {
         <TouchableOpacity
           onPress={() => {
             const phone = coachProfile.phone.replace(/\D/g, "");
-            const msg = encodeURIComponent(`Hello ${coachProfile.name}, I need help with app-pure fitness.`);
+            const msg = encodeURIComponent(`Hello ${coachProfile.name}, I need help with CoreHer Fitness.`);
             Linking.openURL(`https://wa.me/${phone}?text=${msg}`);
           }}
           activeOpacity={0.7}

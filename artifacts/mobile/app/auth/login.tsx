@@ -77,7 +77,7 @@ export default function LoginScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Text style={styles.logo}>app-pure</Text>
+          <Text style={styles.logo}>CoreHer</Text>
           <Text style={styles.tagline}>
             Build your core. Transform your confidence.
           </Text>
@@ -86,7 +86,7 @@ export default function LoginScreen() {
             Start your transformation{"\n"}today
           </Text>
           <Text style={styles.heroDesc}>
-            app-pure fitness helps you lose belly fat, track your lifestyle, and
+            CoreHer Fitness helps you lose belly fat, track your lifestyle, and
             rebuild confidence with a guided 90-day program.
           </Text>
 

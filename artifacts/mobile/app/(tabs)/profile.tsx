@@ -396,7 +396,7 @@ export default function ProfileScreen() {
               Haptics.selectionAsync();
               const phone = coachProfile.phone.replace(/\D/g, "");
               const msg = encodeURIComponent(
-                `Hello ${coachProfile.name}, I need help with app-pure fitness.`
+                `Hello ${coachProfile.name}, I need help with CoreHer Fitness.`
               );
               Linking.openURL(`https://wa.me/${phone}?text=${msg}`);
             }}

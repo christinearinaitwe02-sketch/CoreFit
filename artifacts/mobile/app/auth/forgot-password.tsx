@@ -209,7 +209,7 @@ export default function ForgotPasswordScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <Text style={styles.logo}>app-pure</Text>
+        <Text style={styles.logo}>CoreHer</Text>
         <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
         <View style={styles.stepRow}>
           {(["email", "verify", "password"] as Step[]).map((s, i) => (

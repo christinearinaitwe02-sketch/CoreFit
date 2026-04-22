@@ -71,7 +71,7 @@ const COUNTDOWN_SECS = 5 * 60;
 const API_BASE = getApiBase();
 
 const WHATSAPP_BASE = "https://wa.me/256702568383";
-const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with app-pure fitness.";
+const DEFAULT_WA_MSG = "Hello Coach TinaBarks, I need help with CoreHer Fitness.";
 
 async function openWhatsApp(message?: string) {
   const url = `${WHATSAPP_BASE}?text=${encodeURIComponent(message ?? DEFAULT_WA_MSG)}`;
@@ -441,7 +441,7 @@ export default function PaymentScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Haptics.selectionAsync();
-                  openWhatsApp("Hi Coach TinaBarks, I need help with my Airtel Money payment for app-pure fitness.");
+                  openWhatsApp("Hi Coach TinaBarks, I need help with my Airtel Money payment for CoreHer Fitness.");
                 }}
                 activeOpacity={0.8}
                 style={[styles.waStrip, { backgroundColor: "#25D36614" }]}
@@ -600,7 +600,7 @@ export default function PaymentScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Haptics.selectionAsync();
-                  openWhatsApp("Hi Coach TinaBarks, I just submitted my payment for app-pure fitness Premium. Please confirm when it is approved. Thank you!");
+                  openWhatsApp("Hi Coach TinaBarks, I just submitted my payment for CoreHer Fitness Premium. Please confirm when it is approved. Thank you!");
                 }}
                 activeOpacity={0.8}
                 style={[styles.waStrip, { backgroundColor: "#25D36614", marginHorizontal: 0, width: "100%" }]}
