@@ -1,6 +1,17 @@
 import { Resend } from "resend";
 
 async function getResendClient(): Promise<{ client: Resend; fromEmail: string }> {
+  // Primary: use RESEND_API_KEY env var (works in both dev and production)
+  if (process.env.RESEND_API_KEY) {
+    const fromEmail =
+      process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+    console.log(
+      `[email] Using RESEND_API_KEY env var. from=${fromEmail}`
+    );
+    return { client: new Resend(process.env.RESEND_API_KEY), fromEmail };
+  }
+
+  // Fallback: Replit connector proxy (development only)
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? "repl " + process.env.REPL_IDENTITY
@@ -9,7 +20,9 @@ async function getResendClient(): Promise<{ client: Resend; fromEmail: string }>
     : null;
 
   if (!hostname || !xReplitToken) {
-    throw new Error("Resend connector environment not available.");
+    throw new Error(
+      "Email not configured: set RESEND_API_KEY and RESEND_FROM_EMAIL environment secrets."
+    );
   }
 
   const data = await fetch(
@@ -24,14 +37,14 @@ async function getResendClient(): Promise<{ client: Resend; fromEmail: string }>
 
   const settings = data?.items?.[0]?.settings;
   if (!settings?.api_key) {
-    throw new Error("Resend not connected or missing api_key.");
+    throw new Error(
+      "Email not configured: Resend connector missing api_key. Set RESEND_API_KEY secret instead."
+    );
   }
 
-  // Use onboarding@resend.dev — required when no custom domain is verified.
-  // Once a domain is verified in Resend, update this to: `noreply@<verified-domain>`
+  // Force a safe from address — connector may have an unverified Gmail set
   const fromEmail = "onboarding@resend.dev";
-  console.log(`[email] Resend client ready. from=${fromEmail}`);
-
+  console.log(`[email] Using Resend connector fallback. from=${fromEmail}`);
   return { client: new Resend(settings.api_key), fromEmail };
 }
 
@@ -40,7 +53,10 @@ export async function sendPasswordResetEmail(
   toName: string,
   code: string
 ): Promise<void> {
-  console.log(`[email] Sending password reset code to ${toEmail} (name: ${toName})`);
+  console.log(
+    `[email] Sending password reset code to ${toEmail} (name: ${toName})`
+  );
+
   const { client, fromEmail } = await getResendClient();
 
   const result = await client.emails.send({
@@ -103,9 +119,17 @@ export async function sendPasswordResetEmail(
   });
 
   if (result.error) {
-    console.error(`[email] Resend rejected email to ${toEmail}:`, result.error);
-    throw new Error(result.error.message ?? "Email delivery failed.");
+    console.error(
+      `[email] Resend error for ${toEmail}:`,
+      JSON.stringify(result.error)
+    );
+    throw new Error(
+      result.error.message ??
+        "Email delivery failed. Please check RESEND_FROM_EMAIL and domain verification."
+    );
   }
 
-  console.log(`[email] Reset email delivered successfully. id=${result.data?.id} to=${toEmail}`);
+  console.log(
+    `[email] Reset email delivered. id=${result.data?.id} to=${toEmail}`
+  );
 }
