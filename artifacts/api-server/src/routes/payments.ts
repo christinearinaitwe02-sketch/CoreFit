@@ -43,18 +43,22 @@ router.post("/payments", async (req, res) => {
         createdAt: new Date().toISOString(),
       })
       .returning();
+    console.log(`[payments] POST saved: id=${payment[0].id} user=${resolvedEmail ?? userId} txn=${transactionId}`);
     return res.status(201).json({ success: true, payment: payment[0] });
   } catch (err) {
+    console.error("[payments] POST error:", err);
     return res.status(500).json({ error: "Server error. Please try again." });
   }
 });
 
 router.get("/payments", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
     const payments = await db
       .select()
       .from(paymentsTable)
       .orderBy(desc(paymentsTable.createdAt));
+    console.log(`[payments] GET /payments → ${payments.length} records`);
     return res.json({ payments });
   } catch (err) {
     return res.status(500).json({ error: "Server error." });

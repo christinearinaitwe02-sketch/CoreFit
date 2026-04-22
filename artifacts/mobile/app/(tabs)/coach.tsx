@@ -178,24 +178,28 @@ export default function CoachScreen() {
       c.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const fetchPayments = useCallback(async () => {
-    setLoadingPayments(true);
+  const fetchPayments = useCallback(async (silent = false) => {
+    if (!silent) setLoadingPayments(true);
     try {
-      const res = await fetch(`${API_BASE}/api/payments`);
+      const res = await fetch(`${API_BASE}/api/payments`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       if (!res.ok) return;
       const data = await res.json();
       setPayments(data.payments ?? []);
     } catch {
       // network error
     } finally {
-      setLoadingPayments(false);
+      if (!silent) setLoadingPayments(false);
     }
   }, []);
 
   useEffect(() => {
-    if (user?.role === "coach") {
-      fetchPayments();
-    }
+    if (user?.role !== "coach") return;
+    fetchPayments();
+    const interval = setInterval(() => fetchPayments(true), 30_000);
+    return () => clearInterval(interval);
   }, [user?.role, fetchPayments]);
 
   const handleAction = async (id: string, action: "approve" | "reject") => {
