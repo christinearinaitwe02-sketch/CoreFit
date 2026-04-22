@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { sendPasswordResetEmail } from "../lib/email.js";
 
 const router = Router();
 
@@ -123,11 +124,55 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-router.post("/auth/forgot-password", async (_req, res) => {
-  return res.status(503).json({
-    error:
-      "Password reset is temporarily unavailable. Please contact your coach on WhatsApp for account help.",
-  });
+router.post("/auth/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body as { email?: string };
+
+    if (!email?.trim()) {
+      return res.status(400).json({ error: "Email address is required." });
+    }
+
+    const normalEmail = email.trim().toLowerCase();
+
+    // Always respond with success to prevent email enumeration
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, normalEmail))
+      .limit(1);
+
+    if (rows.length === 0) {
+      // Don't reveal whether the account exists
+      return res.json({ success: true });
+    }
+
+    const user = rows[0];
+
+    // Generate a 6-digit numeric code
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const codeHash = await bcrypt.hash(code, 10);
+    const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
+
+    await db
+      .update(usersTable)
+      .set({ resetToken: codeHash, resetTokenExpiry: expiry })
+      .where(eq(usersTable.email, normalEmail));
+
+    try {
+      await sendPasswordResetEmail(user.email, user.name, code);
+    } catch (emailErr) {
+      console.error("Password reset email failed:", emailErr);
+      // Still return error so user knows email didn't send
+      return res.status(500).json({
+        error: "Could not send reset email. Please check your address and try again.",
+      });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("forgot-password error", err);
+    return res.status(500).json({ error: "Server error. Please try again." });
+  }
 });
 
 router.post("/auth/verify-reset-code", async (req, res) => {
