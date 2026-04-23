@@ -117,19 +117,19 @@ interface AppContextValue {
   coachProfile: CoachProfile;
 
   workouts: WorkoutEntry[];
-  addWorkout: (workout: Omit<WorkoutEntry, "id">) => void;
-  removeWorkout: (id: string) => void;
+  addWorkout: (workout: Omit<WorkoutEntry, "id">) => Promise<void>;
+  removeWorkout: (id: string) => Promise<void>;
 
   meals: MealEntry[];
-  addMeal: (meal: Omit<MealEntry, "id">) => void;
-  removeMeal: (id: string) => void;
+  addMeal: (meal: Omit<MealEntry, "id">) => Promise<void>;
+  removeMeal: (id: string) => Promise<void>;
 
   waterEntries: WaterEntry[];
-  addWaterEntry: (date: string, litres: number) => void;
+  addWaterEntry: (date: string, litres: number) => Promise<void>;
   getTodayWater: () => number;
 
   sleepEntries: SleepEntry[];
-  addSleepEntry: (entry: Omit<SleepEntry, "id">) => void;
+  addSleepEntry: (entry: Omit<SleepEntry, "id">) => Promise<void>;
 
   weightEntries: WeightEntry[];
   addWeightEntry: (kg: number) => void;
@@ -204,12 +204,8 @@ const daysAgo = (n: number) => {
   return d.toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
 };
 
-function storageKeys(uid: string) {
+function localKeys(uid: string) {
   return {
-    workouts: `${uid}_workouts`,
-    meals: `${uid}_meals`,
-    water: `${uid}_waterEntries`,
-    sleep: `${uid}_sleepEntries`,
     weight: `${uid}_weightEntries`,
     onboarded: `${uid}_hasOnboarded`,
     challengeStart: `${uid}_challengeStartDate`,
@@ -234,6 +230,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
 
   const userIdRef = useRef<string | null>(null);
+  const tokenRef = useRef<string | null>(null);
 
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ||
     (typeof window !== "undefined" ? window.location.origin : "");
@@ -243,24 +240,53 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchCoachProfile();
   }, []);
 
-  const loadUserData = useCallback(async (uid: string) => {
+  // ── helpers ────────────────────────────────────────────────────────────────
+
+  function authHeaders() {
+    return { Authorization: `Bearer ${tokenRef.current}`, "Content-Type": "application/json" };
+  }
+
+  async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | null> {
     try {
-      const k = storageKeys(uid);
-      const pairs = await AsyncStorage.multiGet([
-        k.workouts, k.meals, k.water, k.sleep, k.weight,
-        k.onboarded, k.challengeStart, k.completedDays,
-      ]);
+      const res = await fetch(`${API_BASE_URL}/api${path}`, {
+        ...options,
+        headers: { ...authHeaders(), ...(options?.headers ?? {}) },
+      });
+      if (!res.ok) return null;
+      return (await res.json()) as T;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── load API activity data ─────────────────────────────────────────────────
+
+  const fetchActivityData = useCallback(async () => {
+    const [w, m, wa, sl] = await Promise.all([
+      apiFetch<{ workouts: WorkoutEntry[] }>("/workouts"),
+      apiFetch<{ meals: MealEntry[] }>("/meals"),
+      apiFetch<{ waterEntries: WaterEntry[] }>("/water"),
+      apiFetch<{ sleepEntries: SleepEntry[] }>("/sleep"),
+    ]);
+    if (w?.workouts) setWorkouts(w.workouts);
+    if (m?.meals) setMeals(m.meals);
+    if (wa?.waterEntries) setWaterEntries(wa.waterEntries);
+    if (sl?.sleepEntries) setSleepEntries(sl.sleepEntries);
+  }, []);
+
+  // ── load local-only data (weight, prefs) ──────────────────────────────────
+
+  const loadLocalData = useCallback(async (uid: string) => {
+    try {
+      const k = localKeys(uid);
+      const pairs = await AsyncStorage.multiGet([k.weight, k.onboarded, k.challengeStart, k.completedDays]);
       const map = Object.fromEntries(pairs.map(([key, val]) => [key, val]));
-      setWorkouts(map[k.workouts] ? JSON.parse(map[k.workouts]!) : []);
-      setMeals(map[k.meals] ? JSON.parse(map[k.meals]!) : []);
-      setWaterEntries(map[k.water] ? JSON.parse(map[k.water]!) : []);
-      setSleepEntries(map[k.sleep] ? JSON.parse(map[k.sleep]!) : []);
       setWeightEntries(map[k.weight] ? JSON.parse(map[k.weight]!) : []);
       setHasOnboarded(map[k.onboarded] === "true");
       setChallengeStartDate(map[k.challengeStart] ?? null);
       setCompletedChallengeDays(map[k.completedDays] ? JSON.parse(map[k.completedDays]!) : []);
     } catch {
-      // on error, leave state empty — never show another user's data
+      // leave defaults
     }
   }, []);
 
@@ -279,11 +305,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = await AsyncStorage.getItem("authToken");
       if (token) {
+        tokenRef.current = token;
         const uid = await restoreSession(token);
         if (uid) {
           userIdRef.current = uid;
-          await loadUserData(uid);
+          await Promise.all([loadLocalData(uid), fetchActivityData()]);
         } else {
+          tokenRef.current = null;
           await AsyncStorage.removeItem("authToken");
         }
       }
@@ -316,6 +344,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // ── auth ──────────────────────────────────────────────────────────────────
+
   const login = useCallback(
     async (email: string, password: string): Promise<AuthResult> => {
       try {
@@ -330,15 +360,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearUserData();
         setUserState(loggedInUser);
         setAuthToken(data.token);
+        tokenRef.current = data.token;
         userIdRef.current = loggedInUser.id;
         await AsyncStorage.setItem("authToken", data.token);
-        await loadUserData(loggedInUser.id);
+        await Promise.all([loadLocalData(loggedInUser.id), fetchActivityData()]);
         return { success: true };
       } catch {
         return { success: false, error: "Network error. Check your connection." };
       }
     },
-    [API_BASE_URL, clearUserData, loadUserData]
+    [API_BASE_URL, clearUserData, loadLocalData, fetchActivityData]
   );
 
   const register = useCallback(
@@ -355,6 +386,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearUserData();
         setUserState(newUser);
         setAuthToken(data.token);
+        tokenRef.current = data.token;
         userIdRef.current = newUser.id;
         await AsyncStorage.setItem("authToken", data.token);
         return { success: true };
@@ -368,12 +400,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     const uid = userIdRef.current;
     userIdRef.current = null;
+    tokenRef.current = null;
     setUserState(null);
     setAuthToken(null);
     clearUserData();
     const keysToRemove = ["authToken"];
     if (uid) {
-      const k = storageKeys(uid);
+      const k = localKeys(uid);
       keysToRemove.push(k.onboarded, k.challengeStart);
     }
     await AsyncStorage.multiRemove(keysToRemove);
@@ -424,99 +457,107 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const sub = AppState.addEventListener("change", (nextState) => {
       if (appStateRef.current !== "active" && nextState === "active") {
         checkPremiumStatus();
+        // Re-sync activity data whenever app comes to foreground
+        if (tokenRef.current) fetchActivityData();
       }
       appStateRef.current = nextState;
     });
     return () => sub.remove();
-  }, [checkPremiumStatus]);
+  }, [checkPremiumStatus, fetchActivityData]);
 
-  const addWorkout = useCallback(
-    async (workout: Omit<WorkoutEntry, "id">) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const entry: WorkoutEntry = { ...workout, id: generateId() };
-      const updated = [entry, ...workouts];
-      setWorkouts(updated);
-      await AsyncStorage.setItem(storageKeys(uid).workouts, JSON.stringify(updated));
-    },
-    [workouts]
-  );
+  // ── workouts ──────────────────────────────────────────────────────────────
 
-  const removeWorkout = useCallback(
-    async (id: string) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const updated = workouts.filter((w) => w.id !== id);
-      setWorkouts(updated);
-      await AsyncStorage.setItem(storageKeys(uid).workouts, JSON.stringify(updated));
-    },
-    [workouts]
-  );
+  const addWorkout = useCallback(async (workout: Omit<WorkoutEntry, "id">) => {
+    const tempId = generateId();
+    const optimistic: WorkoutEntry = { ...workout, id: tempId };
+    setWorkouts((prev) => [optimistic, ...prev]);
+    const data = await apiFetch<{ workout: WorkoutEntry }>("/workouts", {
+      method: "POST",
+      body: JSON.stringify(workout),
+    });
+    if (data?.workout) {
+      setWorkouts((prev) => prev.map((w) => w.id === tempId ? data.workout : w));
+    }
+  }, []);
 
-  const addMeal = useCallback(
-    async (meal: Omit<MealEntry, "id">) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const entry: MealEntry = { ...meal, id: generateId() };
-      const updated = [entry, ...meals];
-      setMeals(updated);
-      await AsyncStorage.setItem(storageKeys(uid).meals, JSON.stringify(updated));
-    },
-    [meals]
-  );
+  const removeWorkout = useCallback(async (id: string) => {
+    setWorkouts((prev) => prev.filter((w) => w.id !== id));
+    await apiFetch(`/workouts/${id}`, { method: "DELETE" });
+  }, []);
 
-  const removeMeal = useCallback(
-    async (id: string) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const updated = meals.filter((m) => m.id !== id);
-      setMeals(updated);
-      await AsyncStorage.setItem(storageKeys(uid).meals, JSON.stringify(updated));
-    },
-    [meals]
-  );
+  // ── meals ─────────────────────────────────────────────────────────────────
 
-  const addWaterEntry = useCallback(
-    async (date: string, litres: number) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const existing = waterEntries.find((w) => w.date === date);
-      let updated: WaterEntry[];
+  const addMeal = useCallback(async (meal: Omit<MealEntry, "id">) => {
+    const tempId = generateId();
+    const optimistic: MealEntry = { ...meal, id: tempId };
+    setMeals((prev) => [optimistic, ...prev]);
+    const data = await apiFetch<{ meal: MealEntry }>("/meals", {
+      method: "POST",
+      body: JSON.stringify(meal),
+    });
+    if (data?.meal) {
+      setMeals((prev) => prev.map((m) => m.id === tempId ? data.meal : m));
+    }
+  }, []);
+
+  const removeMeal = useCallback(async (id: string) => {
+    setMeals((prev) => prev.filter((m) => m.id !== id));
+    await apiFetch(`/meals/${id}`, { method: "DELETE" });
+  }, []);
+
+  // ── water ─────────────────────────────────────────────────────────────────
+
+  const addWaterEntry = useCallback(async (date: string, litres: number) => {
+    // Optimistic: accumulate locally
+    setWaterEntries((prev) => {
+      const existing = prev.find((w) => w.date === date);
       if (existing) {
         const newTotal = Math.round((existing.litres + litres) * 100) / 100;
-        updated = waterEntries.map((w) => (w.date === date ? { ...w, litres: newTotal } : w));
-      } else {
-        updated = [{ id: generateId(), date, litres }, ...waterEntries];
+        return prev.map((w) => w.date === date ? { ...w, litres: newTotal } : w);
       }
-      setWaterEntries(updated);
-      await AsyncStorage.setItem(storageKeys(uid).water, JSON.stringify(updated));
-    },
-    [waterEntries]
-  );
+      return [{ id: generateId(), date, litres }, ...prev];
+    });
+    // Persist — server accumulates the same way
+    const data = await apiFetch<{ waterEntry: WaterEntry }>("/water", {
+      method: "POST",
+      body: JSON.stringify({ date, litres }),
+    });
+    // Reconcile with server value
+    if (data?.waterEntry) {
+      setWaterEntries((prev) =>
+        prev.map((w) => w.date === date ? { ...data.waterEntry } : w)
+      );
+    }
+  }, []);
 
   const getTodayWater = useCallback(() => {
     const entry = waterEntries.find((w) => w.date === today());
     return entry?.litres ?? 0;
   }, [waterEntries]);
 
-  const addSleepEntry = useCallback(
-    async (entry: Omit<SleepEntry, "id">) => {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      const existing = sleepEntries.find((s) => s.date === entry.date);
-      let updated: SleepEntry[];
+  // ── sleep ─────────────────────────────────────────────────────────────────
+
+  const addSleepEntry = useCallback(async (entry: Omit<SleepEntry, "id">) => {
+    // Optimistic: upsert locally
+    setSleepEntries((prev) => {
+      const existing = prev.find((s) => s.date === entry.date);
       if (existing) {
-        updated = sleepEntries.map((s) =>
-          s.date === entry.date ? { ...s, ...entry, id: s.id } : s
-        );
-      } else {
-        updated = [{ ...entry, id: generateId() }, ...sleepEntries];
+        return prev.map((s) => s.date === entry.date ? { ...s, ...entry } : s);
       }
-      setSleepEntries(updated);
-      await AsyncStorage.setItem(storageKeys(uid).sleep, JSON.stringify(updated));
-    },
-    [sleepEntries]
-  );
+      return [{ ...entry, id: generateId() }, ...prev];
+    });
+    const data = await apiFetch<{ sleepEntry: SleepEntry }>("/sleep", {
+      method: "POST",
+      body: JSON.stringify(entry),
+    });
+    if (data?.sleepEntry) {
+      setSleepEntries((prev) =>
+        prev.map((s) => s.date === entry.date ? { ...data.sleepEntry } : s)
+      );
+    }
+  }, []);
+
+  // ── weight (local-only — used for personal progress chart) ────────────────
 
   const addWeightEntry = useCallback(
     async (kg: number) => {
@@ -531,22 +572,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updated = [...weightEntries, { date: t, kg }];
       }
       setWeightEntries(updated);
-      await AsyncStorage.setItem(storageKeys(uid).weight, JSON.stringify(updated));
+      await AsyncStorage.setItem(localKeys(uid).weight, JSON.stringify(updated));
     },
     [weightEntries]
   );
 
+  // ── onboarding / challenge ─────────────────────────────────────────────────
+
   const completeOnboarding = useCallback(async () => {
     const uid = userIdRef.current;
     setHasOnboarded(true);
-    if (uid) await AsyncStorage.setItem(storageKeys(uid).onboarded, "true");
+    if (uid) await AsyncStorage.setItem(localKeys(uid).onboarded, "true");
   }, []);
 
   const startChallenge = useCallback(async () => {
     const uid = userIdRef.current;
     const t = today();
     setChallengeStartDate(t);
-    if (uid) await AsyncStorage.setItem(storageKeys(uid).challengeStart, t);
+    if (uid) await AsyncStorage.setItem(localKeys(uid).challengeStart, t);
   }, []);
 
   const markDayComplete = useCallback(
@@ -555,7 +598,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (completedChallengeDays.includes(day)) return;
       const updated = [...completedChallengeDays, day];
       setCompletedChallengeDays(updated);
-      if (uid) await AsyncStorage.setItem(storageKeys(uid).completedDays, JSON.stringify(updated));
+      if (uid) await AsyncStorage.setItem(localKeys(uid).completedDays, JSON.stringify(updated));
     },
     [completedChallengeDays]
   );
@@ -566,6 +609,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const now = new Date(today() + "T00:00:00").getTime();
     return Math.min(90, Math.max(1, Math.floor((now - start) / 86400000) + 1));
   }, [challengeStartDate]);
+
+  // ── summaries ─────────────────────────────────────────────────────────────
 
   const getTodaySummary = useCallback((): DaySummary => {
     const t = today();
