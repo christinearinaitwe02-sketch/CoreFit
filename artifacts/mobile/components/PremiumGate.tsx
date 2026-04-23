@@ -3,7 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import {
   Platform,
   StyleSheet,
@@ -25,6 +25,7 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const topPad = embedded ? 0 : Platform.OS === "web" ? 67 : insets.top;
+  const isNavigating = useRef(false);
 
   if (user?.isPremium || isElevated(user?.role)) return <>{children}</>;
 
@@ -77,8 +78,11 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
 
         <TouchableOpacity
           onPress={() => {
+            if (isNavigating.current) return;
+            isNavigating.current = true;
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             router.push("/upgrade");
+            setTimeout(() => { isNavigating.current = false; }, 1000);
           }}
           activeOpacity={0.87}
           style={styles.btnWrap}

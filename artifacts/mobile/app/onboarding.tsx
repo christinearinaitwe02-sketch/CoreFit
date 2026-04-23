@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React from "react";
+import React, { useRef } from "react";
 import {
   Image,
   Platform,
@@ -55,6 +55,7 @@ export default function OnboardingScreen() {
 
   const topPad = Platform.OS === "web" ? 32 : insets.top + 16;
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
+  const isNavigating = useRef(false);
 
   const handleStart = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -63,9 +64,12 @@ export default function OnboardingScreen() {
   };
 
   const handleStartPremium = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeOnboarding();
     router.push("/upgrade");
+    setTimeout(() => { isNavigating.current = false; }, 1000);
   };
 
   return (

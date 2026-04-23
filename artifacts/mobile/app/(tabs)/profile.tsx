@@ -3,7 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Alert,
   Linking,
@@ -89,6 +89,7 @@ export default function ProfileScreen() {
 
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
+  const isNavigatingToUpgrade = useRef(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const isCoach = isElevated(user?.role);
@@ -272,8 +273,11 @@ export default function ProfileScreen() {
               <PillButton
                 label="View Status"
                 onPress={() => {
+                  if (isNavigatingToUpgrade.current) return;
+                  isNavigatingToUpgrade.current = true;
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   router.push("/upgrade");
+                  setTimeout(() => { isNavigatingToUpgrade.current = false; }, 1000);
                 }}
                 style={{ marginTop: 12 }}
               />
@@ -282,8 +286,11 @@ export default function ProfileScreen() {
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={() => {
+                if (isNavigatingToUpgrade.current) return;
+                isNavigatingToUpgrade.current = true;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push("/upgrade");
+                setTimeout(() => { isNavigatingToUpgrade.current = false; }, 1000);
               }}
             >
               <LinearGradient

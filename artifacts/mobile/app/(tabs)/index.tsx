@@ -3,7 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { PremiumGateModal } from "@/components/PremiumGateModal";
 import {
   Alert,
@@ -66,6 +66,7 @@ export default function DashboardScreen() {
   const challengeDay = getChallengeDay();
   const showPremiumBanner = !user?.isPremium && !isElevated(user?.role);
   const [showChallengeGate, setShowChallengeGate] = useState(false);
+  const isNavigatingToUpgrade = useRef(false);
 
   const summary = useMemo(() => getTodaySummary(), [getTodaySummary]);
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
@@ -120,8 +121,11 @@ export default function DashboardScreen() {
         {showPremiumBanner && (
           <TouchableOpacity
             onPress={() => {
+              if (isNavigatingToUpgrade.current) return;
+              isNavigatingToUpgrade.current = true;
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               router.push("/upgrade");
+              setTimeout(() => { isNavigatingToUpgrade.current = false; }, 1000);
             }}
             activeOpacity={0.9}
             style={styles.premiumBannerWrap}

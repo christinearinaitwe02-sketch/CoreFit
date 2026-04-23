@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import {
   Modal,
   StyleSheet,
@@ -29,11 +29,15 @@ interface Props {
 export function PremiumGateModal({ visible, onClose, featureName }: Props) {
   const colors = useColors();
   const router = useRouter();
+  const isNavigating = useRef(false);
 
   const handleUpgrade = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onClose();
     router.push("/upgrade");
+    setTimeout(() => { isNavigating.current = false; }, 1000);
   };
 
   return (
