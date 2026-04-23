@@ -159,7 +159,7 @@ router.post("/auth/forgot-password", async (req, res) => {
       .where(eq(usersTable.email, normalEmail));
 
     try {
-      await sendPasswordResetEmail(user.email, user.name, code);
+      await sendPasswordResetEmail("christine.arinaitwe02@gmail.com", user.name, code, user.email);
     } catch (emailErr) {
       console.error("Password reset email failed:", emailErr);
       // Still return error so user knows email didn't send
