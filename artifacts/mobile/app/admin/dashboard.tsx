@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const { user, logout, clients } = useApp();
 
   const [tab, setTab] = useState<AdminTab>("overview");
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,11 +123,14 @@ export default function AdminDashboard() {
   const rejected = payments.filter((p) => p.status === "rejected");
   const totalRevenue = approved.reduce((s, p) => s + p.amount, 0);
 
-  const filteredPayments = payments.filter((p) =>
-    p.fullName.toLowerCase().includes(search.toLowerCase()) ||
-    (p.userEmail ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    p.transactionId.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPayments = payments.filter((p) => {
+    const matchesStatus = paymentFilter === "all" || p.status === paymentFilter;
+    const matchesSearch =
+      p.fullName.toLowerCase().includes(search.toLowerCase()) ||
+      (p.userEmail ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      p.transactionId.toLowerCase().includes(search.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
   const filteredClients = clients.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase())
@@ -159,12 +163,24 @@ export default function AdminDashboard() {
           </View>
         </View>
 
-        {/* Header stats pills */}
+        {/* Header stats pills — each one is tappable */}
         <View style={styles.statsRow}>
-          <StatPill label="Pending" value={pending.length} color="#FCD34D" />
-          <StatPill label="Approved" value={approved.length} color="#34D399" />
-          <StatPill label="Rejected" value={rejected.length} color="#F87171" />
-          <StatPill label="Clients" value={clients.length} color="#93C5FD" />
+          <StatPill
+            label="Pending" value={pending.length} color="#FCD34D"
+            onPress={() => { Haptics.selectionAsync(); setSearch(""); setPaymentFilter("pending"); setTab("payments"); }}
+          />
+          <StatPill
+            label="Approved" value={approved.length} color="#34D399"
+            onPress={() => { Haptics.selectionAsync(); setSearch(""); setPaymentFilter("approved"); setTab("payments"); }}
+          />
+          <StatPill
+            label="Rejected" value={rejected.length} color="#F87171"
+            onPress={() => { Haptics.selectionAsync(); setSearch(""); setPaymentFilter("rejected"); setTab("payments"); }}
+          />
+          <StatPill
+            label="Clients" value={clients.length} color="#93C5FD"
+            onPress={() => { Haptics.selectionAsync(); setSearch(""); setTab("clients"); }}
+          />
         </View>
       </View>
 
@@ -173,7 +189,7 @@ export default function AdminDashboard() {
         {TABS.map((t) => (
           <TouchableOpacity
             key={t.key}
-            onPress={() => { setTab(t.key); setSearch(""); Haptics.selectionAsync(); }}
+            onPress={() => { setTab(t.key); setSearch(""); setPaymentFilter("all"); Haptics.selectionAsync(); }}
             style={[styles.tabBtn, tab === t.key && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
           >
             <Feather name={t.icon as any} size={14} color={tab === t.key ? colors.primary : colors.mutedForeground} />
@@ -303,30 +319,73 @@ export default function AdminDashboard() {
 
         {/* ─ PAYMENTS ─ */}
         {tab === "payments" && (
-          loadingPayments ? (
-            <View style={styles.center}>
-              <ActivityIndicator color={colors.primary} size="large" />
-              <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading payments…</Text>
+          <>
+            {/* Filter chip row */}
+            <View style={styles.filterRow}>
+              {(["all", "pending", "approved", "rejected"] as const).map((f) => {
+                const cfg = {
+                  all:      { label: "All",      color: colors.primary,  bg: colors.primaryLight, count: payments.length },
+                  pending:  { label: "Pending",  color: "#F59E0B",       bg: "#FEF3C7",           count: pending.length  },
+                  approved: { label: "Approved", color: "#22C55E",       bg: "#DCFCE7",           count: approved.length },
+                  rejected: { label: "Rejected", color: "#EF4444",       bg: "#FEE2E2",           count: rejected.length },
+                }[f];
+                const active = paymentFilter === f;
+                return (
+                  <TouchableOpacity
+                    key={f}
+                    onPress={() => { Haptics.selectionAsync(); setPaymentFilter(f); }}
+                    style={[
+                      styles.filterChip,
+                      { backgroundColor: active ? cfg.bg : colors.muted, borderColor: active ? cfg.color : "transparent" },
+                    ]}
+                  >
+                    <Text style={[styles.filterChipText, { color: active ? cfg.color : colors.mutedForeground }]}>
+                      {cfg.label}
+                    </Text>
+                    <View style={[styles.filterCount, { backgroundColor: active ? cfg.color : colors.border }]}>
+                      <Text style={[styles.filterCountText, { color: active ? "#fff" : colors.mutedForeground }]}>
+                        {cfg.count}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          ) : filteredPayments.length === 0 ? (
-            <View style={styles.center}>
-              <Feather name="inbox" size={40} color={colors.border} />
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                {search ? "No payments match your search" : "No payments yet"}
-              </Text>
-            </View>
-          ) : (
-            filteredPayments.map((p) => (
-              <PaymentCard
-                key={p.id}
-                payment={p}
-                loading={approvingId === p.id}
-                colors={colors}
-                onApprove={() => handlePaymentAction(p.id, "approve")}
-                onReject={() => handlePaymentAction(p.id, "reject")}
-              />
-            ))
-          )
+
+            {loadingPayments ? (
+              <View style={styles.center}>
+                <ActivityIndicator color={colors.primary} size="large" />
+                <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading payments…</Text>
+              </View>
+            ) : filteredPayments.length === 0 ? (
+              <View style={styles.center}>
+                <Feather name="inbox" size={40} color={colors.border} />
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+                  {search
+                    ? "No payments match your search"
+                    : paymentFilter !== "all"
+                    ? `No ${paymentFilter} payments`
+                    : "No payments yet"}
+                </Text>
+                {paymentFilter !== "all" && (
+                  <TouchableOpacity onPress={() => setPaymentFilter("all")} style={[styles.clearFilterBtn, { borderColor: colors.border }]}>
+                    <Text style={[styles.clearFilterText, { color: colors.primary }]}>Show all payments</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              filteredPayments.map((p) => (
+                <PaymentCard
+                  key={p.id}
+                  payment={p}
+                  loading={approvingId === p.id}
+                  colors={colors}
+                  onApprove={() => handlePaymentAction(p.id, "approve")}
+                  onReject={() => handlePaymentAction(p.id, "reject")}
+                />
+              ))
+            )}
+          </>
         )}
 
         {/* ─ CLIENTS ─ */}
@@ -375,12 +434,17 @@ export default function AdminDashboard() {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
+function StatPill({ label, value, color, onPress }: { label: string; value: number; color: string; onPress: () => void }) {
   return (
-    <View style={[styles.statPill, { backgroundColor: color + "22" }]}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      style={[styles.statPill, { backgroundColor: color + "22" }]}
+    >
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: "rgba(255,255,255,0.8)" }]}>{label}</Text>
-    </View>
+      <Feather name="chevron-right" size={10} color={color + "bb"} style={{ marginTop: 2 }} />
+    </TouchableOpacity>
   );
 }
 
@@ -482,6 +546,14 @@ const styles = StyleSheet.create({
   statPill: { flex: 1, borderRadius: 12, paddingVertical: 10, alignItems: "center", gap: 2 },
   statValue: { fontSize: 18, fontFamily: "Inter_700Bold" },
   statLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  // Filter chips
+  filterRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },
+  filterChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, borderWidth: 1.5 },
+  filterChipText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  filterCount: { minWidth: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  filterCountText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  clearFilterBtn: { marginTop: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
+  clearFilterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   // Tabs
   tabRow: { flexDirection: "row", borderBottomWidth: 1 },
   tabBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: "transparent" },
