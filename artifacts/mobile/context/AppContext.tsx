@@ -148,9 +148,6 @@ interface AppContextValue {
   markDayComplete: (day: number) => void;
 
   clients: Client[];
-  clientsLoading: boolean;
-  clientsError: string | null;
-  refreshClients: () => Promise<void>;
 
   getTodaySummary: () => DaySummary;
   getWeekSummary: () => DaySummary[];
@@ -235,8 +232,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
   const [clients, setClients] = useState<Client[]>([]);
-  const [clientsLoading, setClientsLoading] = useState(false);
-  const [clientsError, setClientsError] = useState<string | null>(null);
 
   const userIdRef = useRef<string | null>(null);
   const tokenRef = useRef<string | null>(null);
@@ -309,8 +304,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setChallengeStartDate(null);
     setCompletedChallengeDays([]);
     setClients([]);
-    setClientsLoading(false);
-    setClientsError(null);
   }, []);
 
   const loadData = async () => {
@@ -454,30 +447,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [API_BASE_URL]);
 
   const fetchClients = useCallback(async () => {
-    if (!tokenRef.current) return;
-    setClientsLoading(true);
-    setClientsError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/clients`, {
         headers: { Authorization: `Bearer ${tokenRef.current}` },
-        cache: "no-store",
       });
-      if (res.status === 403) {
-        // Not an admin/coach — silently skip
-        setClientsLoading(false);
-        return;
-      }
-      if (!res.ok) {
-        setClientsError("Could not load clients. Pull to refresh.");
-        setClientsLoading(false);
-        return;
-      }
+      if (!res.ok) return;
       const data = await res.json();
-      setClients(Array.isArray(data?.clients) ? (data.clients as Client[]) : []);
+      if (Array.isArray(data.clients)) setClients(data.clients as Client[]);
     } catch {
-      setClientsError("Network error. Pull to refresh.");
-    } finally {
-      setClientsLoading(false);
+      // non-admin users will get 403 — that's fine
     }
   }, [API_BASE_URL]);
 
@@ -723,9 +701,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         challengeStartDate, startChallenge, getChallengeDay,
         completedChallengeDays, markDayComplete,
         clients,
-        clientsLoading,
-        clientsError,
-        refreshClients: fetchClients,
         getTodaySummary, getWeekSummary,
         isLoading,
       }}

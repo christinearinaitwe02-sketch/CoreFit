@@ -51,7 +51,7 @@ export default function AdminDashboard() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, logout, clients, clientsLoading, clientsError, refreshClients } = useApp();
+  const { user, logout, clients } = useApp();
 
   const [tab, setTab] = useState<AdminTab>("overview");
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchPayments(true), refreshClients()]);
+    await fetchPayments(true);
     setRefreshing(false);
   };
 
@@ -289,46 +289,30 @@ export default function AdminDashboard() {
 
             {/* Clients quick list */}
             <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>
-              Clients ({clientsLoading ? "…" : clients.length})
+              Clients ({clients.length})
             </Text>
-            {clientsLoading ? (
-              <View style={[styles.emptyCard, { backgroundColor: colors.card }]}>
-                <ActivityIndicator color={colors.primary} />
-                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Loading clients…</Text>
-              </View>
-            ) : clients.length === 0 ? (
-              <View style={[styles.emptyCard, { backgroundColor: colors.card }]}>
-                <Feather name="users" size={24} color={colors.border} />
-                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                  {clientsError ? clientsError : "No registered clients yet"}
-                </Text>
-              </View>
-            ) : (
-              <>
-                {(clients ?? []).slice(0, 4).map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={[styles.recentRow, { backgroundColor: colors.card }]}
-                    onPress={() => router.push(`/admin/client/${c.id}`)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[styles.recentAvatar, { backgroundColor: avatarColor(c.name) + "22" }]}>
-                      <Text style={[styles.recentAvatarText, { color: avatarColor(c.name) }]}>{initials(c.name)}</Text>
-                    </View>
-                    <View style={styles.recentMeta}>
-                      <Text style={[styles.recentName, { color: colors.foreground }]}>{c.name}</Text>
-                      <Text style={[styles.recentSub, { color: colors.mutedForeground }]}>{c.email}</Text>
-                    </View>
-                    <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-                  </TouchableOpacity>
-                ))}
-                {clients.length > 4 && (
-                  <TouchableOpacity onPress={() => setTab("clients")} style={[styles.viewAllBtn, { borderColor: colors.border }]}>
-                    <Text style={[styles.viewAllText, { color: colors.primary }]}>View all {clients.length} clients</Text>
-                    <Feather name="arrow-right" size={14} color={colors.primary} />
-                  </TouchableOpacity>
-                )}
-              </>
+            {clients.slice(0, 4).map((c) => (
+              <TouchableOpacity
+                key={c.id}
+                style={[styles.recentRow, { backgroundColor: colors.card }]}
+                onPress={() => router.push(`/admin/client/${c.id}`)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.recentAvatar, { backgroundColor: avatarColor(c.name) + "22" }]}>
+                  <Text style={[styles.recentAvatarText, { color: avatarColor(c.name) }]}>{initials(c.name)}</Text>
+                </View>
+                <View style={styles.recentMeta}>
+                  <Text style={[styles.recentName, { color: colors.foreground }]}>{c.name}</Text>
+                  <Text style={[styles.recentSub, { color: colors.mutedForeground }]}>{c.email}</Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            ))}
+            {clients.length > 4 && (
+              <TouchableOpacity onPress={() => setTab("clients")} style={[styles.viewAllBtn, { borderColor: colors.border }]}>
+                <Text style={[styles.viewAllText, { color: colors.primary }]}>View all {clients.length} clients</Text>
+                <Feather name="arrow-right" size={14} color={colors.primary} />
+              </TouchableOpacity>
             )}
           </>
         )}
@@ -406,31 +390,15 @@ export default function AdminDashboard() {
 
         {/* ─ CLIENTS ─ */}
         {tab === "clients" && (
-          clientsLoading ? (
-            <View style={styles.center}>
-              <ActivityIndicator color={colors.primary} size="large" />
-              <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading clients…</Text>
-            </View>
-          ) : clientsError ? (
-            <View style={styles.center}>
-              <Feather name="alert-circle" size={40} color="#EF4444" />
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>{clientsError}</Text>
-              <TouchableOpacity
-                onPress={() => { Haptics.selectionAsync(); refreshClients(); }}
-                style={[styles.clearFilterBtn, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.clearFilterText, { color: colors.primary }]}>Try again</Text>
-              </TouchableOpacity>
-            </View>
-          ) : filteredClients.length === 0 ? (
+          filteredClients.length === 0 ? (
             <View style={styles.center}>
               <Feather name="users" size={40} color={colors.border} />
               <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                {search ? "No clients match your search" : "No registered clients yet"}
+                {search ? "No clients match your search" : "No clients yet"}
               </Text>
             </View>
           ) : (
-            (filteredClients ?? []).map((c) => (
+            filteredClients.map((c) => (
               <TouchableOpacity
                 key={c.id}
                 activeOpacity={0.75}
@@ -443,14 +411,7 @@ export default function AdminDashboard() {
                 <View style={styles.clientInfo}>
                   <Text style={[styles.clientName, { color: colors.foreground }]}>{c.name}</Text>
                   <Text style={[styles.clientEmail, { color: colors.mutedForeground }]}>{c.email}</Text>
-                  {c.paymentStatus && c.paymentStatus !== "none" ? (
-                    <Text style={[
-                      styles.clientNotes,
-                      { color: c.isPremium ? "#22C55E" : c.paymentStatus === "pending" ? "#F59E0B" : colors.mutedForeground }
-                    ]} numberOfLines={1}>
-                      {c.isPremium ? "Premium active" : c.paymentStatus === "pending" ? "Payment pending" : c.paymentStatus}
-                    </Text>
-                  ) : c.notes ? (
+                  {c.notes ? (
                     <Text style={[styles.clientNotes, { color: colors.mutedForeground }]} numberOfLines={1}>
                       {c.notes}
                     </Text>
