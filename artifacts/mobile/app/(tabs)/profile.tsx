@@ -3,8 +3,9 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -89,7 +90,7 @@ export default function ProfileScreen() {
 
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
-  const isNavigatingToUpgrade = useRef(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const isCoach = isElevated(user?.role);
@@ -272,12 +273,13 @@ export default function ProfileScreen() {
               </View>
               <PillButton
                 label="View Status"
+                loading={upgradeLoading}
                 onPress={() => {
-                  if (isNavigatingToUpgrade.current) return;
-                  isNavigatingToUpgrade.current = true;
+                  if (upgradeLoading) return;
+                  setUpgradeLoading(true);
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   router.push("/upgrade");
-                  setTimeout(() => { isNavigatingToUpgrade.current = false; }, 1000);
+                  setTimeout(() => { setUpgradeLoading(false); }, 1000);
                 }}
                 style={{ marginTop: 12 }}
               />
@@ -285,30 +287,37 @@ export default function ProfileScreen() {
           ) : (
             <TouchableOpacity
               activeOpacity={0.88}
+              disabled={upgradeLoading}
               onPress={() => {
-                if (isNavigatingToUpgrade.current) return;
-                isNavigatingToUpgrade.current = true;
+                if (upgradeLoading) return;
+                setUpgradeLoading(true);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push("/upgrade");
-                setTimeout(() => { isNavigatingToUpgrade.current = false; }, 1000);
+                setTimeout(() => { setUpgradeLoading(false); }, 1000);
               }}
             >
               <LinearGradient
                 colors={["#6A0DAD", "#9B5DE5"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.upgradeGradient}
+                style={[styles.upgradeGradient, upgradeLoading && { opacity: 0.75 }]}
               >
-                <View style={styles.subRow}>
-                  <Feather name="star" size={20} color="#FFD700" />
-                  <View style={styles.subInfo}>
-                    <Text style={[styles.subTitle, { color: "#fff" }]}>Unlock Premium</Text>
-                    <Text style={[styles.subDesc, { color: "#ffffffbb" }]}>
-                      UGX 75,000/month · Airtel Money · Merchant 7071895
-                    </Text>
+                {upgradeLoading ? (
+                  <View style={[styles.subRow, { justifyContent: "center" }]}>
+                    <ActivityIndicator color="#fff" size="small" />
                   </View>
-                  <Feather name="arrow-right" size={18} color="#fff" />
-                </View>
+                ) : (
+                  <View style={styles.subRow}>
+                    <Feather name="star" size={20} color="#FFD700" />
+                    <View style={styles.subInfo}>
+                      <Text style={[styles.subTitle, { color: "#fff" }]}>Unlock Premium</Text>
+                      <Text style={[styles.subDesc, { color: "#ffffffbb" }]}>
+                        UGX 75,000/month · Airtel Money · Merchant 7071895
+                      </Text>
+                    </View>
+                    <Feather name="arrow-right" size={18} color="#fff" />
+                  </View>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           )

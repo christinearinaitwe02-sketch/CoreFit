@@ -2,8 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   StyleSheet,
   Text,
@@ -29,15 +30,17 @@ interface Props {
 export function PremiumGateModal({ visible, onClose, featureName }: Props) {
   const colors = useColors();
   const router = useRouter();
-  const isNavigating = useRef(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   const handleUpgrade = () => {
-    if (isNavigating.current) return;
-    isNavigating.current = true;
+    if (upgradeLoading) return;
+    setUpgradeLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onClose();
-    router.push("/upgrade");
-    setTimeout(() => { isNavigating.current = false; }, 1000);
+    setTimeout(() => {
+      onClose();
+      router.push("/upgrade");
+      setUpgradeLoading(false);
+    }, 400);
   };
 
   return (
@@ -116,16 +119,22 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                 </View>
 
                 {/* Upgrade CTA */}
-                <TouchableOpacity onPress={handleUpgrade} activeOpacity={0.87} style={styles.upgradeWrap}>
+                <TouchableOpacity onPress={handleUpgrade} activeOpacity={0.87} disabled={upgradeLoading} style={styles.upgradeWrap}>
                   <LinearGradient
                     colors={["#6A0DAD", "#9B5DE5"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={styles.upgradeBtn}
+                    style={[styles.upgradeBtn, upgradeLoading && { opacity: 0.75 }]}
                   >
-                    <Feather name="star" size={18} color="#FFD700" />
-                    <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
-                    <Feather name="arrow-right" size={18} color="#fff" />
+                    {upgradeLoading ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <>
+                        <Feather name="star" size={18} color="#FFD700" />
+                        <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
+                        <Feather name="arrow-right" size={18} color="#fff" />
+                      </>
+                    )}
                   </LinearGradient>
                 </TouchableOpacity>
 

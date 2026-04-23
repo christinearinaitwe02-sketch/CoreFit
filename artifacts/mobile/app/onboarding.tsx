@@ -2,8 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -55,7 +56,7 @@ export default function OnboardingScreen() {
 
   const topPad = Platform.OS === "web" ? 32 : insets.top + 16;
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
-  const isNavigating = useRef(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   const handleStart = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -64,12 +65,12 @@ export default function OnboardingScreen() {
   };
 
   const handleStartPremium = () => {
-    if (isNavigating.current) return;
-    isNavigating.current = true;
+    if (upgradeLoading) return;
+    setUpgradeLoading(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeOnboarding();
     router.push("/upgrade");
-    setTimeout(() => { isNavigating.current = false; }, 1000);
+    setTimeout(() => { setUpgradeLoading(false); }, 1000);
   };
 
   return (
@@ -199,16 +200,22 @@ export default function OnboardingScreen() {
           </View>
 
           {/* Primary CTA */}
-          <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap}>
+          <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
             <LinearGradient
               colors={["#6A0DAD", "#9B5DE5"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.premiumCTA}
+              style={[styles.premiumCTA, upgradeLoading && { opacity: 0.75 }]}
             >
-              <Feather name="star" size={17} color="#FFD700" />
-              <Text style={styles.premiumCTAText}>Start My Transformation</Text>
-              <Feather name="arrow-right" size={17} color="#fff" />
+              {upgradeLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Feather name="star" size={17} color="#FFD700" />
+                  <Text style={styles.premiumCTAText}>Start My Transformation</Text>
+                  <Feather name="arrow-right" size={17} color="#fff" />
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
 
