@@ -5,7 +5,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -85,27 +84,20 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, setUser, updateProfile, logout, workouts, meals, waterEntries, sleepEntries, coachProfile } = useApp();
+  const { user, setUser, logout, workouts, meals, waterEntries, sleepEntries, coachProfile } = useApp();
   const demoUsers = buildDemoUsers(coachProfile);
 
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
-  const [saving, setSaving] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const isCoach = isElevated(user?.role);
 
-  const handleSave = async () => {
-    if (!name.trim() || saving) return;
-    setSaving(true);
-    const result = await updateProfile(name.trim());
-    setSaving(false);
-    if (result.success) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setEditMode(false);
-    } else {
-      Alert.alert("Update Failed", result.error ?? "Could not save your name. Please try again.");
-    }
+  const handleSave = () => {
+    if (!name.trim()) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setUser({ ...(user!), name: name.trim() });
+    setEditMode(false);
   };
 
   const stats = [
@@ -192,14 +184,11 @@ export default function ProfileScreen() {
                 onChangeText={setName}
                 style={[styles.nameInput, { color: colors.foreground, backgroundColor: colors.muted }]}
                 autoFocus
-                editable={!saving}
               />
-              <TouchableOpacity onPress={handleSave} disabled={saving}>
-                {saving
-                  ? <ActivityIndicator size="small" color={colors.primary} />
-                  : <Feather name="check" size={22} color={colors.primary} />}
+              <TouchableOpacity onPress={handleSave}>
+                <Feather name="check" size={22} color={colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => { if (!saving) setEditMode(false); }}>
+              <TouchableOpacity onPress={() => setEditMode(false)}>
                 <Feather name="x" size={22} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>

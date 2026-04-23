@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db, usersTable } from "@workspace/db";
-import { eq, isNull, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { sendPasswordResetEmail } from "../lib/email.js";
 
 const router = Router();
@@ -316,94 +316,6 @@ router.patch("/auth/change-password", async (req, res) => {
 
     return res.json({ success: true });
   } catch {
-    return res.status(401).json({ error: "Invalid or expired token." });
-  }
-});
-
-// ── PUT /auth/profile ─────────────────────────────────────────────────────────
-router.put("/auth/profile", async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET) as { id: string };
-
-    const { name, email } = req.body as { name?: string; email?: string };
-    if (!name?.trim()) {
-      return res.status(400).json({ error: "Name is required." });
-    }
-
-    const updates: Partial<typeof usersTable.$inferInsert> = { name: name.trim() };
-    if (email?.trim()) {
-      const normalEmail = email.trim().toLowerCase();
-      // Check email uniqueness if changing
-      const existing = await db
-        .select({ id: usersTable.id })
-        .from(usersTable)
-        .where(eq(usersTable.email, normalEmail))
-        .limit(1);
-      if (existing.length > 0 && existing[0].id !== decoded.id) {
-        return res.status(409).json({ error: "That email is already in use." });
-      }
-      updates.email = normalEmail;
-    }
-
-    const [updated] = await db
-      .update(usersTable)
-      .set(updates)
-      .where(eq(usersTable.id, decoded.id))
-      .returning();
-
-    if (!updated) return res.status(404).json({ error: "User not found." });
-    return res.json({ user: safeUser(updated) });
-  } catch (err) {
-    console.error("profile update error", err);
-    return res.status(401).json({ error: "Invalid or expired token." });
-  }
-});
-
-// ── GET /auth/clients (admin/coach only) ──────────────────────────────────────
-router.get("/auth/clients", async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET) as { id: string };
-    const callerRows = await db
-      .select({ role: usersTable.role })
-      .from(usersTable)
-      .where(eq(usersTable.id, decoded.id))
-      .limit(1);
-    if (callerRows.length === 0 || !["admin", "coach"].includes(callerRows[0].role)) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const rows = await db
-      .select({
-        id: usersTable.id,
-        name: usersTable.name,
-        email: usersTable.email,
-        isPremium: usersTable.isPremium,
-        paymentStatus: usersTable.paymentStatus,
-        createdAt: usersTable.createdAt,
-      })
-      .from(usersTable)
-      .where(and(eq(usersTable.role, "client"), isNull(usersTable.deletedAt)));
-
-    const clients = rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      email: r.email,
-      joinDate: r.createdAt,
-      isPremium: r.isPremium,
-      paymentStatus: r.paymentStatus,
-    }));
-
-    return res.json({ clients });
-  } catch (err) {
-    console.error("clients list error", err);
     return res.status(401).json({ error: "Invalid or expired token." });
   }
 });
