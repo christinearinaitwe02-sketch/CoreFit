@@ -65,7 +65,7 @@ export default function AdminClientDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { clients } = useApp();
+  const { clients, clientsLoading } = useApp();
 
   const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [loadingPayment, setLoadingPayment] = useState(true);
@@ -99,8 +99,17 @@ export default function AdminClientDetail() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <NavBar onBack={() => router.back()} topPad={topPad} colors={colors} />
         <View style={styles.notFound}>
-          <Feather name="user-x" size={44} color={colors.border} />
-          <Text style={[styles.notFoundText, { color: colors.mutedForeground }]}>Client not found</Text>
+          {clientsLoading ? (
+            <>
+              <ActivityIndicator color={colors.border} size="large" />
+              <Text style={[styles.notFoundText, { color: colors.mutedForeground }]}>Loading client…</Text>
+            </>
+          ) : (
+            <>
+              <Feather name="user-x" size={44} color={colors.border} />
+              <Text style={[styles.notFoundText, { color: colors.mutedForeground }]}>Client not found</Text>
+            </>
+          )}
         </View>
       </View>
     );
