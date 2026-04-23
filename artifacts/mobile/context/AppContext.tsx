@@ -84,6 +84,8 @@ export interface Client {
   name: string;
   email: string;
   joinDate: string;
+  isPremium?: boolean;
+  paymentStatus?: string;
   weight?: number;
   notes?: string;
 }
@@ -112,6 +114,7 @@ interface AppContextValue {
   logout: () => Promise<void>;
 
   setUser: (user: User | null) => void;
+  updateProfile: (name: string, email?: string) => Promise<AuthResult>;
   setPaymentPending: () => void;
   checkPremiumStatus: () => Promise<void>;
   coachProfile: CoachProfile;
@@ -228,6 +231,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [completedChallengeDays, setCompletedChallengeDays] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(DEFAULT_COACH);
+  const [clients, setClients] = useState<Client[]>([]);
 
   const userIdRef = useRef<string | null>(null);
   const tokenRef = useRef<string | null>(null);
@@ -299,6 +303,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setHasOnboarded(false);
     setChallengeStartDate(null);
     setCompletedChallengeDays([]);
+    setClients([]);
   }, []);
 
   const loadData = async () => {
@@ -309,7 +314,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const uid = await restoreSession(token);
         if (uid) {
           userIdRef.current = uid;
-          await Promise.all([loadLocalData(uid), fetchActivityData()]);
+          await Promise.all([loadLocalData(uid), fetchActivityData(), fetchClients()]);
         } else {
           tokenRef.current = null;
           await AsyncStorage.removeItem("authToken");
@@ -363,13 +368,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         tokenRef.current = data.token;
         userIdRef.current = loggedInUser.id;
         await AsyncStorage.setItem("authToken", data.token);
-        await Promise.all([loadLocalData(loggedInUser.id), fetchActivityData()]);
+        await Promise.all([loadLocalData(loggedInUser.id), fetchActivityData(), fetchClients()]);
         return { success: true };
       } catch {
         return { success: false, error: "Network error. Check your connection." };
       }
     },
-    [API_BASE_URL, clearUserData, loadLocalData, fetchActivityData]
+    [API_BASE_URL, clearUserData, loadLocalData, fetchActivityData, fetchClients]
   );
 
   const register = useCallback(
@@ -423,6 +428,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateProfile = useCallback(async (name: string, email?: string): Promise<AuthResult> => {
+    try {
+      const body: Record<string, string> = { name };
+      if (email) body.email = email;
+      const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error ?? "Failed to update profile." };
+      setUserState(data.user as User);
+      return { success: true };
+    } catch {
+      return { success: false, error: "Network error. Please try again." };
+    }
+  }, [API_BASE_URL]);
+
+  const fetchClients = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/clients`, {
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.clients)) setClients(data.clients as Client[]);
+    } catch {
+      // non-admin users will get 403 — that's fine
+    }
+  }, [API_BASE_URL]);
+
   const fetchCoachProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/coach`);
@@ -457,13 +493,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const sub = AppState.addEventListener("change", (nextState) => {
       if (appStateRef.current !== "active" && nextState === "active") {
         checkPremiumStatus();
-        // Re-sync activity data whenever app comes to foreground
-        if (tokenRef.current) fetchActivityData();
+        if (tokenRef.current) {
+          fetchActivityData();
+          fetchClients();
+        }
       }
       appStateRef.current = nextState;
     });
     return () => sub.remove();
-  }, [checkPremiumStatus, fetchActivityData]);
+  }, [checkPremiumStatus, fetchActivityData, fetchClients]);
 
   // ── workouts ──────────────────────────────────────────────────────────────
 
@@ -650,6 +688,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         setUser,
+        updateProfile,
         setPaymentPending,
         checkPremiumStatus,
         coachProfile,
@@ -661,7 +700,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         hasOnboarded, completeOnboarding,
         challengeStartDate, startChallenge, getChallengeDay,
         completedChallengeDays, markDayComplete,
-        clients: DEMO_CLIENTS,
+        clients,
         getTodaySummary, getWeekSummary,
         isLoading,
       }}
