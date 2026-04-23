@@ -65,7 +65,7 @@ export default function OnboardingScreen() {
   const handleStartPremium = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeOnboarding();
-    router.replace("/upgrade" as any);
+    router.push("/upgrade");
   };
 
   return (
