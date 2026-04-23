@@ -213,9 +213,9 @@ export default function OnboardingScreen() {
           </TouchableOpacity>
 
           {/* Secondary */}
-          <TouchableOpacity onPress={handleStart} style={styles.skipBtn}>
-            <Text style={[styles.skipText, { color: colors.mutedForeground }]}>
-              Explore for free first
+          <TouchableOpacity onPress={handleStart} activeOpacity={0.7} style={styles.skipBtn}>
+            <Text style={[styles.skipText, { color: colors.foreground }]}>
+              Continue with Free Plan
             </Text>
           </TouchableOpacity>
         </View>
@@ -351,6 +351,19 @@ const styles = StyleSheet.create({
     flex: 1, textAlign: "center",
     color: "#fff", fontSize: 15, fontFamily: "Inter_700Bold",
   },
-  skipBtn: { alignSelf: "center", paddingVertical: 14, paddingBottom: 18 },
-  skipText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  skipBtn: {
+    alignSelf: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    paddingBottom: 18,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(106,13,173,0.25)",
+  },
+  skipText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    textDecorationLine: "underline",
+    textDecorationStyle: "solid",
+  },
 });
