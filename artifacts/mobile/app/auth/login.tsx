@@ -30,6 +30,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -164,17 +165,30 @@ export default function LoginScreen() {
 
             <View style={styles.field}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Your password"
-                placeholderTextColor={colors.light.mutedForeground}
-                secureTextEntry
-                autoComplete="current-password"
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.inputFlex}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Your password"
+                  placeholderTextColor={colors.light.mutedForeground}
+                  secureTextEntry={!showPassword}
+                  autoComplete="current-password"
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                />
+                <Pressable
+                  onPress={() => setShowPassword((v) => !v)}
+                  style={styles.eyeBtn}
+                  hitSlop={8}
+                >
+                  <Feather
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color={colors.light.mutedForeground}
+                  />
+                </Pressable>
+              </View>
             </View>
 
             <Pressable
@@ -365,6 +379,28 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: colors.light.text,
     backgroundColor: "#FAFAFA",
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: colors.light.border,
+    borderRadius: 12,
+    backgroundColor: "#FAFAFA",
+  },
+  inputFlex: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    color: colors.light.text,
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    justifyContent: "center",
+    alignItems: "center",
   },
   formBtn: {
     borderRadius: 14,
