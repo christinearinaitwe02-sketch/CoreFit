@@ -5,6 +5,7 @@ import paymentsRouter from "./payments";
 import coachRouter from "./coach";
 import authRouter from "./auth";
 import activityRouter from "./activity";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(estimateCaloriesRouter);
 router.use(paymentsRouter);
 router.use(coachRouter);
 router.use(activityRouter);
+router.use(analyticsRouter);
 
 export default router;

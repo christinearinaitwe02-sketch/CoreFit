@@ -93,9 +93,9 @@ export default function ProfileScreen() {
   const [name, setName] = useState(user?.name ?? "");
 
   const { isNavigating: pendingUpgradeLoading, navigateToUpgrade: navigatePendingUpgrade } =
-    useUpgradeNavigation({ haptics: "impact-light" });
+    useUpgradeNavigation({ source: "profile", haptics: "impact-light" });
   const { isNavigating: freeUpgradeLoading, navigateToUpgrade: navigateFreeUpgrade } =
-    useUpgradeNavigation();
+    useUpgradeNavigation({ source: "profile" });
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const isCoach = isElevated(user?.role);

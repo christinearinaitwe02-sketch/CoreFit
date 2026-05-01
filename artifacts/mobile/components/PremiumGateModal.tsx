@@ -29,6 +29,7 @@ interface Props {
 export function PremiumGateModal({ visible, onClose, featureName }: Props) {
   const colors = useColors();
   const { isNavigating: upgradeLoading, navigateToUpgrade: handleUpgrade } = useUpgradeNavigation({
+    source: "modal",
     onBeforeNavigate: onClose,
     navigationDelay: 400,
     resetDelay: 0,

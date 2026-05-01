@@ -1,8 +1,10 @@
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { trackEvent, setUpgradeSource } from "@/utils/analytics";
 
 export interface UpgradeNavigationOptions {
+  source?: string;
   onBeforeNavigate?: () => void;
   haptics?: "notification-success" | "impact-medium" | "impact-light";
   navigationDelay?: number;
@@ -10,6 +12,7 @@ export interface UpgradeNavigationOptions {
 }
 
 export function useUpgradeNavigation({
+  source,
   onBeforeNavigate,
   haptics = "impact-medium",
   navigationDelay = 0,
@@ -21,6 +24,9 @@ export function useUpgradeNavigation({
   const navigateToUpgrade = () => {
     if (isNavigating) return;
     setIsNavigating(true);
+
+    setUpgradeSource(source);
+    trackEvent("upgrade_funnel_started", { source });
 
     if (haptics === "notification-success") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

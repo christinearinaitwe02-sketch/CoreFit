@@ -23,7 +23,7 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
   const { user } = useApp();
   const insets = useSafeAreaInsets();
   const topPad = embedded ? 0 : Platform.OS === "web" ? 67 : insets.top;
-  const { isNavigating: upgradeLoading, navigateToUpgrade } = useUpgradeNavigation();
+  const { isNavigating: upgradeLoading, navigateToUpgrade } = useUpgradeNavigation({ source: "gate" });
 
   if (user?.isPremium || isElevated(user?.role)) return <>{children}</>;
 

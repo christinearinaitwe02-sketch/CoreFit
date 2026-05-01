@@ -61,6 +61,7 @@ export default function OnboardingScreen() {
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
 
   const { isNavigating: upgradeLoading, navigateToUpgrade } = useUpgradeNavigation({
+    source: "onboarding",
     haptics: "notification-success",
     onBeforeNavigate: completeOnboarding,
   });

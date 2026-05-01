@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import BottomNav from "@/components/BottomNav";
+import { trackEvent, getUpgradeSource } from "@/utils/analytics";
 
 type Step = "instructions" | "form" | "success";
 
@@ -157,6 +158,7 @@ export default function PaymentScreen() {
       const data = await res.json();
       if (!res.ok) return Alert.alert("Error", data.error ?? "Something went wrong.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      trackEvent("upgrade_funnel_converted", { source: getUpgradeSource() });
       setPaymentPending();
       if (timerRef.current) clearInterval(timerRef.current);
       setStep("success");
