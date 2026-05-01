@@ -158,7 +158,8 @@ export default function AdminDashboard() {
               <Text style={styles.adminBadgeText}>Admin</Text>
             </View>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Feather name="log-out" size={18} color="rgba(255,255,255,0.85)" />
+              <Feather name="log-out" size={14} color="#fff" />
+              <Text style={styles.logoutBtnText}>Sign Out</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -541,7 +542,18 @@ const styles = StyleSheet.create({
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   adminBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.18)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100 },
   adminBadgeText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  logoutBtn: { padding: 6 },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
+  },
+  logoutBtnText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
   statsRow: { flexDirection: "row", gap: 8 },
   statPill: { flex: 1, borderRadius: 12, paddingVertical: 10, alignItems: "center", gap: 2 },
   statValue: { fontSize: 18, fontFamily: "Inter_700Bold" },
