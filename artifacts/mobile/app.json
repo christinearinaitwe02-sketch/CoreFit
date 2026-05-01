@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CoreHer Fitness",
+    "name": "CoreFit",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,7 +20,9 @@
     "web": {
       "favicon": "./assets/images/icon.png",
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "title": "CoreFit – 90 Day Fitness & Weight Loss App",
+      "shortTitle": "CoreFit"
     },
     "plugins": [
       "expo-router",

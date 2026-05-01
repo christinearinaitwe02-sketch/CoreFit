@@ -53,7 +53,7 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
         </Text>
 
         <Text style={styles.sub}>
-          Join CoreHer Premium and get access to all transformation tools designed
+          Join CoreFit Premium and get access to all transformation tools designed
           for women ready to lose belly fat and feel confident again.
         </Text>
 

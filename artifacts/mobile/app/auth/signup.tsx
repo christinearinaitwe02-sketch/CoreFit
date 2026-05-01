@@ -55,7 +55,7 @@ export default function SignupScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <Text style={styles.logo}>CoreHer</Text>
+        <Text style={styles.logo}>CoreFit</Text>
         <Text style={styles.tagline}>Build your core. Transform your confidence.</Text>
       </LinearGradient>
 
@@ -121,7 +121,7 @@ export default function SignupScreen() {
           </View>
 
           <Text style={styles.disclaimer}>
-            By signing up, you agree to CoreHer&apos;s terms of service.
+            By signing up, you agree to CoreFit&apos;s terms of service.
           </Text>
 
           <Pressable

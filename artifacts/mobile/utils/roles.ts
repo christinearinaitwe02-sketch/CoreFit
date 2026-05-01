@@ -1,5 +1,5 @@
 /**
- * Role utilities for CoreHer Fitness.
+ * Role utilities for CoreFit.
  *
  * Elevated users (admin or coach) bypass premium gates and see the admin dashboard.
  */
