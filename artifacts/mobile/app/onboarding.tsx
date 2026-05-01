@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Image,
@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { isElevated } from "@/utils/roles";
+import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
 
 const PREMIUM_PERKS = [
   { icon: "trending-down", label: "Lose belly fat", color: "#FF7F7F" },
@@ -58,21 +59,16 @@ export default function OnboardingScreen() {
 
   const topPad = Platform.OS === "web" ? 32 : insets.top + 16;
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
+
+  const { isNavigating: upgradeLoading, navigateToUpgrade } = useUpgradeNavigation({
+    haptics: "notification-success",
+    onBeforeNavigate: completeOnboarding,
+  });
 
   const handleStart = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeOnboarding();
     router.replace("/(tabs)");
-  };
-
-  const handleStartPremium = () => {
-    if (upgradeLoading) return;
-    setUpgradeLoading(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    completeOnboarding();
-    router.push("/upgrade");
-    setTimeout(() => { setUpgradeLoading(false); }, 1000);
   };
 
   return (
@@ -249,7 +245,8 @@ export default function OnboardingScreen() {
               ))}
             </View>
 
-            <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
+            {/* Primary CTA */}
+            <TouchableOpacity onPress={navigateToUpgrade} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
               <LinearGradient
                 colors={["#6A0DAD", "#9B5DE5"]}
                 start={{ x: 0, y: 0 }}

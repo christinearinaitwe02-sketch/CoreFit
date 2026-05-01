@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
 import {
   ActivityIndicator,
   Alert,
@@ -90,7 +91,11 @@ export default function ProfileScreen() {
 
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
+
+  const { isNavigating: pendingUpgradeLoading, navigateToUpgrade: navigatePendingUpgrade } =
+    useUpgradeNavigation({ haptics: "impact-light" });
+  const { isNavigating: freeUpgradeLoading, navigateToUpgrade: navigateFreeUpgrade } =
+    useUpgradeNavigation();
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const isCoach = isElevated(user?.role);
@@ -273,36 +278,24 @@ export default function ProfileScreen() {
               </View>
               <PillButton
                 label="View Status"
-                loading={upgradeLoading}
-                onPress={() => {
-                  if (upgradeLoading) return;
-                  setUpgradeLoading(true);
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/upgrade");
-                  setTimeout(() => { setUpgradeLoading(false); }, 1000);
-                }}
+                loading={pendingUpgradeLoading}
+                onPress={navigatePendingUpgrade}
                 style={{ marginTop: 12 }}
               />
             </View>
           ) : (
             <TouchableOpacity
               activeOpacity={0.88}
-              disabled={upgradeLoading}
-              onPress={() => {
-                if (upgradeLoading) return;
-                setUpgradeLoading(true);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push("/upgrade");
-                setTimeout(() => { setUpgradeLoading(false); }, 1000);
-              }}
+              disabled={freeUpgradeLoading}
+              onPress={navigateFreeUpgrade}
             >
               <LinearGradient
                 colors={["#6A0DAD", "#9B5DE5"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={[styles.upgradeGradient, upgradeLoading && { opacity: 0.75 }]}
+                style={[styles.upgradeGradient, freeUpgradeLoading && { opacity: 0.75 }]}
               >
-                {upgradeLoading ? (
+                {freeUpgradeLoading ? (
                   <View style={[styles.subRow, { justifyContent: "center" }]}>
                     <ActivityIndicator color="#fff" size="small" />
                   </View>

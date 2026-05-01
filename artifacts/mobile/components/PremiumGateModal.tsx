@@ -1,8 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -13,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useColors } from "@/hooks/useColors";
+import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
 
 const BENEFITS = [
   { icon: "trending-down", label: "Lose belly fat" },
@@ -29,19 +28,11 @@ interface Props {
 
 export function PremiumGateModal({ visible, onClose, featureName }: Props) {
   const colors = useColors();
-  const router = useRouter();
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
-
-  const handleUpgrade = () => {
-    if (upgradeLoading) return;
-    setUpgradeLoading(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setTimeout(() => {
-      onClose();
-      router.push("/upgrade");
-      setUpgradeLoading(false);
-    }, 400);
-  };
+  const { isNavigating: upgradeLoading, navigateToUpgrade: handleUpgrade } = useUpgradeNavigation({
+    onBeforeNavigate: onClose,
+    navigationDelay: 400,
+    resetDelay: 0,
+  });
 
   return (
     <Modal

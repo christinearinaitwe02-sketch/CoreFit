@@ -1,9 +1,7 @@
 import { isElevated } from "@/utils/roles";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -14,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
+import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
 
 interface Props {
   feature: string;
@@ -23,10 +22,9 @@ interface Props {
 
 export function PremiumGate({ feature, children, embedded = false }: Props) {
   const { user } = useApp();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const topPad = embedded ? 0 : Platform.OS === "web" ? 67 : insets.top;
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const { isNavigating: upgradeLoading, navigateToUpgrade } = useUpgradeNavigation();
 
   if (user?.isPremium || isElevated(user?.role)) return <>{children}</>;
 
@@ -78,13 +76,7 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
         </View>
 
         <TouchableOpacity
-          onPress={() => {
-            if (upgradeLoading) return;
-            setUpgradeLoading(true);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            router.push("/upgrade");
-            setTimeout(() => { setUpgradeLoading(false); }, 1000);
-          }}
+          onPress={navigateToUpgrade}
           activeOpacity={0.87}
           disabled={upgradeLoading}
           style={styles.btnWrap}
