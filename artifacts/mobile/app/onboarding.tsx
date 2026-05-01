@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { isElevated } from "@/utils/roles";
 
 const PREMIUM_PERKS = [
   { icon: "trending-down", label: "Lose belly fat", color: "#FF7F7F" },
@@ -52,7 +53,8 @@ export default function OnboardingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { completeOnboarding } = useApp();
+  const { completeOnboarding, user } = useApp();
+  const alreadyPremium = !!(user?.isPremium || isElevated(user?.role));
 
   const topPad = Platform.OS === "web" ? 32 : insets.top + 16;
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom + 16;
@@ -153,79 +155,126 @@ export default function OnboardingScreen() {
           </Text>
         </View>
 
-        {/* ── Premium Upsell Card ── */}
-        <View style={[styles.premiumCard, { backgroundColor: colors.card }]}>
-          {/* Card header */}
-          <LinearGradient
-            colors={["#6A0DAD", "#9B5DE5"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.premiumCardHeader}
-          >
-            <View style={styles.premiumCardHeaderRow}>
-              <View style={styles.premiumStarCircle}>
-                <Feather name="star" size={18} color="#FFD700" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.premiumCardTitle}>Go Premium Today</Text>
-                <Text style={styles.premiumCardSub}>
-                  Unlock your full transformation
-                </Text>
-              </View>
-              <View style={styles.premiumCardPricePill}>
-                <Text style={styles.premiumCardPriceAmt}>UGX 75,000</Text>
-                <Text style={styles.premiumCardPriceSub}>per month</Text>
-              </View>
-            </View>
-          </LinearGradient>
-
-          {/* Perks */}
-          <View style={styles.premiumPerks}>
-            {PREMIUM_PERKS.map((p) => (
-              <View key={p.label} style={styles.premiumPerkRow}>
-                <View
-                  style={[
-                    styles.premiumPerkIcon,
-                    { backgroundColor: p.color + "18" },
-                  ]}
-                >
-                  <Feather name={p.icon as any} size={14} color={p.color} />
+        {/* ── Premium / Already-Premium Section ── */}
+        {alreadyPremium ? (
+          /* ── Active Premium Banner ── */
+          <View style={[styles.premiumCard, { backgroundColor: colors.card }]}>
+            <LinearGradient
+              colors={["#14532D", "#22C55E"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.premiumCardHeader}
+            >
+              <View style={styles.premiumCardHeaderRow}>
+                <View style={[styles.premiumStarCircle, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                  <Feather name="check-circle" size={20} color="#fff" />
                 </View>
-                <Text style={[styles.premiumPerkLabel, { color: colors.foreground }]}>
-                  {p.label}
-                </Text>
-                <Feather name="check" size={14} color="#22C55E" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.premiumCardTitle}>You're on Premium 🎉</Text>
+                  <Text style={styles.premiumCardSub}>
+                    All features are fully unlocked for you
+                  </Text>
+                </View>
+                <View style={[styles.premiumCardPricePill, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                  <Text style={[styles.premiumCardPriceAmt, { fontSize: 13 }]}>ACTIVE</Text>
+                  <Text style={styles.premiumCardPriceSub}>PRO</Text>
+                </View>
               </View>
-            ))}
-          </View>
+            </LinearGradient>
 
-          {/* Primary CTA */}
-          <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
+            <View style={styles.premiumPerks}>
+              {PREMIUM_PERKS.map((p) => (
+                <View key={p.label} style={styles.premiumPerkRow}>
+                  <View style={[styles.premiumPerkIcon, { backgroundColor: "#22C55E18" }]}>
+                    <Feather name={p.icon as any} size={14} color="#22C55E" />
+                  </View>
+                  <Text style={[styles.premiumPerkLabel, { color: colors.foreground }]}>
+                    {p.label}
+                  </Text>
+                  <Feather name="check" size={14} color="#22C55E" />
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity onPress={handleStart} activeOpacity={0.87} style={styles.premiumCTAWrap}>
+              <LinearGradient
+                colors={["#15803D", "#22C55E"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.premiumCTA}
+              >
+                <Feather name="home" size={17} color="#fff" />
+                <Text style={styles.premiumCTAText}>Go to My Dashboard</Text>
+                <Feather name="arrow-right" size={17} color="#fff" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* ── Upsell Card (free users) ── */
+          <View style={[styles.premiumCard, { backgroundColor: colors.card }]}>
             <LinearGradient
               colors={["#6A0DAD", "#9B5DE5"]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.premiumCTA, upgradeLoading && { opacity: 0.75 }]}
+              end={{ x: 1, y: 1 }}
+              style={styles.premiumCardHeader}
             >
-              {upgradeLoading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <Feather name="star" size={17} color="#FFD700" />
-                  <Text style={styles.premiumCTAText}>Start My Transformation</Text>
-                  <Feather name="arrow-right" size={17} color="#fff" />
-                </>
-              )}
+              <View style={styles.premiumCardHeaderRow}>
+                <View style={styles.premiumStarCircle}>
+                  <Feather name="star" size={18} color="#FFD700" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.premiumCardTitle}>Go Premium Today</Text>
+                  <Text style={styles.premiumCardSub}>
+                    Unlock your full transformation
+                  </Text>
+                </View>
+                <View style={styles.premiumCardPricePill}>
+                  <Text style={styles.premiumCardPriceAmt}>UGX 75,000</Text>
+                  <Text style={styles.premiumCardPriceSub}>per month</Text>
+                </View>
+              </View>
             </LinearGradient>
-          </TouchableOpacity>
 
-          {/* Secondary */}
-          <TouchableOpacity onPress={handleStart} activeOpacity={0.7} style={styles.skipBtn}>
-            <Text style={[styles.skipText, { color: colors.foreground }]}>
-              Continue with Free Plan
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.premiumPerks}>
+              {PREMIUM_PERKS.map((p) => (
+                <View key={p.label} style={styles.premiumPerkRow}>
+                  <View style={[styles.premiumPerkIcon, { backgroundColor: p.color + "18" }]}>
+                    <Feather name={p.icon as any} size={14} color={p.color} />
+                  </View>
+                  <Text style={[styles.premiumPerkLabel, { color: colors.foreground }]}>
+                    {p.label}
+                  </Text>
+                  <Feather name="check" size={14} color="#22C55E" />
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity onPress={handleStartPremium} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
+              <LinearGradient
+                colors={["#6A0DAD", "#9B5DE5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.premiumCTA, upgradeLoading && { opacity: 0.75 }]}
+              >
+                {upgradeLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Feather name="star" size={17} color="#FFD700" />
+                    <Text style={styles.premiumCTAText}>Start My Transformation</Text>
+                    <Feather name="arrow-right" size={17} color="#fff" />
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleStart} activeOpacity={0.7} style={styles.skipBtn}>
+              <Text style={[styles.skipText, { color: colors.foreground }]}>
+                Continue with Free Plan
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
