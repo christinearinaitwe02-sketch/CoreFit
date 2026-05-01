@@ -2,7 +2,6 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  ActivityIndicator,
   Modal,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
+import { UpgradeButton } from "@/components/UpgradeButton";
 
 const BENEFITS = [
   { icon: "trending-down", label: "Lose belly fat" },
@@ -110,24 +110,11 @@ export function PremiumGateModal({ visible, onClose, featureName }: Props) {
                 </View>
 
                 {/* Upgrade CTA */}
-                <TouchableOpacity onPress={handleUpgrade} activeOpacity={0.87} disabled={upgradeLoading} style={styles.upgradeWrap}>
-                  <LinearGradient
-                    colors={["#6A0DAD", "#9B5DE5"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[styles.upgradeBtn, upgradeLoading && { opacity: 0.75 }]}
-                  >
-                    {upgradeLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <>
-                        <Feather name="star" size={18} color="#FFD700" />
-                        <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
-                        <Feather name="arrow-right" size={18} color="#fff" />
-                      </>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
+                <UpgradeButton
+                  onPress={handleUpgrade}
+                  loading={upgradeLoading}
+                  iconSize={18}
+                />
 
                 <TouchableOpacity onPress={onClose} style={styles.laterBtn}>
                   <Text style={[styles.laterText, { color: colors.mutedForeground }]}>
@@ -212,16 +199,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   airtelBadgeText: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#fff" },
-  upgradeWrap: { borderRadius: 18, overflow: "hidden" },
-  upgradeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 17,
-    paddingHorizontal: 24,
-  },
-  upgradeBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#fff", flex: 1, textAlign: "center" },
   laterBtn: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 20 },
   laterText: { fontSize: 14, fontFamily: "Inter_500Medium" },
 });

@@ -5,8 +5,8 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
+import { UpgradeButton } from "@/components/UpgradeButton";
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -284,35 +284,15 @@ export default function ProfileScreen() {
               />
             </View>
           ) : (
-            <TouchableOpacity
-              activeOpacity={0.88}
-              disabled={freeUpgradeLoading}
+            <UpgradeButton
               onPress={navigateFreeUpgrade}
-            >
-              <LinearGradient
-                colors={["#6A0DAD", "#9B5DE5"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.upgradeGradient, freeUpgradeLoading && { opacity: 0.75 }]}
-              >
-                {freeUpgradeLoading ? (
-                  <View style={[styles.subRow, { justifyContent: "center" }]}>
-                    <ActivityIndicator color="#fff" size="small" />
-                  </View>
-                ) : (
-                  <View style={styles.subRow}>
-                    <Feather name="star" size={20} color="#FFD700" />
-                    <View style={styles.subInfo}>
-                      <Text style={[styles.subTitle, { color: "#fff" }]}>Unlock Premium</Text>
-                      <Text style={[styles.subDesc, { color: "#ffffffbb" }]}>
-                        UGX 75,000/month · Airtel Money · Merchant 7071895
-                      </Text>
-                    </View>
-                    <Feather name="arrow-right" size={18} color="#fff" />
-                  </View>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+              loading={freeUpgradeLoading}
+              label="Unlock Premium"
+              sublabel="UGX 75,000/month · Airtel Money · Merchant 7071895"
+              gradientEnd={{ x: 1, y: 1 }}
+              iconSize={20}
+              style={styles.upgradeGradient}
+            />
           )
         )}
 
@@ -574,8 +554,6 @@ const styles = StyleSheet.create({
   },
   upgradeGradient: {
     marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 16,
     marginBottom: 24,
   },
   subRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },

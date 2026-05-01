@@ -3,16 +3,15 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  ActivityIndicator,
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
+import { UpgradeButton } from "@/components/UpgradeButton";
 
 interface Props {
   feature: string;
@@ -75,29 +74,11 @@ export function PremiumGate({ feature, children, embedded = false }: Props) {
           </View>
         </View>
 
-        <TouchableOpacity
+        <UpgradeButton
           onPress={navigateToUpgrade}
-          activeOpacity={0.87}
-          disabled={upgradeLoading}
-          style={styles.btnWrap}
-        >
-          <LinearGradient
-            colors={["#9B5DE5", "#FF7F7F"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.btn, upgradeLoading && { opacity: 0.75 }]}
-          >
-            {upgradeLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Feather name="star" size={17} color="#FFD700" />
-                <Text style={styles.btnText}>Upgrade to Premium</Text>
-                <Feather name="arrow-right" size={17} color="#fff" />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+          loading={upgradeLoading}
+          gradientColors={["#9B5DE5", "#FF7F7F"]}
+        />
       </View>
     </LinearGradient>
   );
@@ -226,24 +207,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_700Bold",
     color: "#fff",
-  },
-  btnWrap: {
-    borderRadius: 18,
-    overflow: "hidden",
-  },
-  btn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 17,
-    paddingHorizontal: 24,
-  },
-  btnText: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: "#fff",
-    flex: 1,
-    textAlign: "center",
   },
 });

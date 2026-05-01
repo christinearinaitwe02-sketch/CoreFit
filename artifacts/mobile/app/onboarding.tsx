@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
-  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -18,6 +17,7 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { isElevated } from "@/utils/roles";
 import { useUpgradeNavigation } from "@/hooks/useUpgradeNavigation";
+import { UpgradeButton } from "@/components/UpgradeButton";
 
 const PREMIUM_PERKS = [
   { icon: "trending-down", label: "Lose belly fat", color: "#FF7F7F" },
@@ -246,24 +246,12 @@ export default function OnboardingScreen() {
             </View>
 
             {/* Primary CTA */}
-            <TouchableOpacity onPress={navigateToUpgrade} activeOpacity={0.87} style={styles.premiumCTAWrap} disabled={upgradeLoading}>
-              <LinearGradient
-                colors={["#6A0DAD", "#9B5DE5"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.premiumCTA, upgradeLoading && { opacity: 0.75 }]}
-              >
-                {upgradeLoading ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <Feather name="star" size={17} color="#FFD700" />
-                    <Text style={styles.premiumCTAText}>Start My Transformation</Text>
-                    <Feather name="arrow-right" size={17} color="#fff" />
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+            <UpgradeButton
+              onPress={navigateToUpgrade}
+              loading={upgradeLoading}
+              label="Start My Transformation"
+              style={styles.premiumCTAWrap}
+            />
 
             <TouchableOpacity onPress={handleStart} activeOpacity={0.7} style={styles.skipBtn}>
               <Text style={[styles.skipText, { color: colors.foreground }]}>
