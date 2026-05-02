@@ -28,5 +28,17 @@ date: new Date().toISOString(),
 router.get("/progress", (req, res) => {
   res.json({ progress: progressData });
 });
+router.delete("/progress/:id", (req, res) => {
+  const { id } = req.params;
 
+  const initialLength = progressData.length;
+
+  progressData = progressData.filter(item => item.id !== id);
+
+  if (progressData.length === initialLength) {
+    return res.status(404).json({ error: "Item not found" });
+  }
+
+  res.json({ success: true });
+});
 export default router;
