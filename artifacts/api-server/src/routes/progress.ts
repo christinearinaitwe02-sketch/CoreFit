@@ -13,11 +13,11 @@ router.post("/progress", (req, res) => {
     return res.status(400).json({ error: "Weight is required" });
   }
 
- 16 const entry = {
-17   id: Date.now().toString(), // ✅ ADD THIS LINE
-18   weight,
-19   date: new Date().toISOString(),
-20 };
+  const entry = {
+id: Date.now().toString(), // ✅ ADD THIS LINE
+weight,
+date: new Date().toISOString(),
+ };
 
   progressData.push(entry);
 
