@@ -71,7 +71,7 @@ Meal: ${userInput}`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      req.log.error({ status: response.status, body: errorText }, "OpenAI API error");
+      console.error("OpenAI API error:", response.status, errorText);
       res.status(502).json({ error: "AI service unavailable" });
       return;
     }
@@ -92,7 +92,7 @@ Meal: ${userInput}`;
     try {
       parsed = JSON.parse(extractJson(raw));
     } catch (parseErr) {
-      req.log.error({ raw, parseErr }, "Failed to parse AI JSON response");
+    console.error("Parse error:", raw, parseErr);
       res.status(502).json({ error: "AI returned an unexpected response format" });
       return;
     }
@@ -106,7 +106,7 @@ Meal: ${userInput}`;
 
     res.json({ foodName, calories, confidence, notes });
   } catch (err) {
-    req.log.error({ err }, "Failed to estimate calories");
+   console.error("Estimate error:", err);
     res.status(500).json({ error: "Failed to estimate calories" });
   }
 });
