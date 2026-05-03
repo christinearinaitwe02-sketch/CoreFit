@@ -20,13 +20,22 @@ async function ensureAdminUser() {
     if (existing) {
       await db
         .update(usersTable)
-        .set({ role: "admin", passwordHash, isPremium: true })
+        .set({
+          role: "admin",
+          passwordHash,
+          isPremium: true,
+        })
         .where(eq(usersTable.email, ADMIN_EMAIL));
+
       logger.info("Admin user credentials synced");
     } else {
       function generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+        return (
+          Date.now().toString(36) +
+          Math.random().toString(36).slice(2, 9)
+        );
       }
+
       await db.insert(usersTable).values({
         id: generateId(),
         name: ADMIN_NAME,
@@ -37,6 +46,7 @@ async function ensureAdminUser() {
         paymentStatus: "approved",
         createdAt: new Date().toISOString(),
       });
+
       logger.info("Admin user created");
     }
   } catch (err) {
@@ -48,7 +58,7 @@ const rawPort = process.env["PORT"];
 
 if (!rawPort) {
   throw new Error(
-    "PORT environment variable is required but was not provided.",
+    "PORT environment variable is required but was not provided."
   );
 }
 
@@ -65,5 +75,6 @@ app.listen(port, async (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
   await ensureAdminUser();
 });
